@@ -1,6 +1,6 @@
 # 船用螺旋槳：從幾何到面元法（互動式教材）
 
-以 [Jupyter Book 2](https://jupyterbook.org)（MyST）建置的互動式電子書，網站：<https://denny97056.github.io/MarinePropeller/>（英文版在 `/en/`）。
+以 [Jupyter Book 2](https://jupyterbook.org)（MyST）建置的互動式電子書，網站：<https://denny97056.github.io/ShipPropeller/>（英文版在 `/en/`）。
 架構與 [ShipStructure](https://github.com/Denny97056/ShipStructure) 相同。
 
 ## 本機建置

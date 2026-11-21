@@ -4,7 +4,7 @@ project:
   title: 船用螺旋槳：從幾何到面元法
   subtitle: 互動式教材
   license: CC-BY-4.0
-  github: https://github.com/Denny97056/MarinePropeller
+  github: https://github.com/Denny97056/ShipPropeller
   toc:
     - file: index.md
     - title: 第一篇　幾何與描述
@@ -20,4 +20,4 @@ site:
     folders: true
   nav:
     - title: English
-      url: https://denny97056.github.io/MarinePropeller/en/
+      url: https://denny97056.github.io/ShipPropeller/en/
