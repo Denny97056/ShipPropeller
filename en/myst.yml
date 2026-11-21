@@ -1,0 +1,23 @@
+# English edition — Jupyter Book 2 (MyST) config. Build from this folder after running tools/build_en.py.
+version: 1
+project:
+  title: "Marine Propellers: From Geometry to Panel Methods"
+  subtitle: An Interactive Textbook
+  license: CC-BY-4.0
+  github: https://github.com/Denny97056/MarinePropeller
+  toc:
+    - file: index.md
+    - title: Part 1　Geometry
+      children:
+        - file: part1/index.md
+        - file: part1/01-geometry.md
+    - title: Appendix
+      children:
+        - file: appendix/code.md
+site:
+  template: book-theme
+  options:
+    folders: true
+  nav:
+    - title: 中文版
+      url: https://denny97056.github.io/MarinePropeller/

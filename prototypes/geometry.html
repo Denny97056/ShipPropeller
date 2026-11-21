@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>船用螺旋槳 第一篇 幾何</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: same two-column explorable layout as the hull-structure series — sticky text left, figures right. Bronze marks the blade. */
+:root{
+  --paper:#EEF2F1; --panel:#FBFCFC; --ink:#1C2632; --ink2:#5B6773; --rule:#C9D2D5; --grid:#E1E7E9;
+  --pos:#C0501A; --neg:#21659E; --flow:#127A55; --pole:#7A3DB0;
+  --bronze:#C08A48; --bronzeD:#5A3A18; --hub:#8C979F; --hubD:#3C454C;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#12171C; --panel:#192027; --ink:#E1E6E9; --ink2:#9AA5AE; --rule:#2E3842; --grid:#222A32;
+    --pos:#F08A4B; --neg:#5EA6E2; --flow:#45C08F; --pole:#BC8DEA;
+    --bronze:#E0AD6C; --bronzeD:#5E3F1E; --hub:#9AA5AE; --hubD:#2B333A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#12171C; --panel:#192027; --ink:#E1E6E9; --ink2:#9AA5AE; --rule:#2E3842; --grid:#222A32;
+  --pos:#F08A4B; --neg:#5EA6E2; --flow:#45C08F; --pole:#BC8DEA;
+  --bronze:#E0AD6C; --bronzeD:#5E3F1E; --hub:#9AA5AE; --hubD:#2B333A;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+body{ margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Hiragino Sans",system-ui,sans-serif;
+  font-size:17px; line-height:1.8;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+h1,h2,.num{ font-family:"Noto Serif TC","Songti TC","PMingLiU","Hiragino Mincho ProN",serif; text-wrap:balance; }
+.m{ font-family:"Times New Roman","Noto Serif TC",serif; font-style:italic; white-space:nowrap; }
+.part{ font-size:.95rem; color:var(--ink2); margin:0 0 .4rem; letter-spacing:.04em; }
+
+.hero{ max-width:78rem; margin:0 auto; padding-block:3.2rem 2.5rem;
+  display:grid; grid-template-columns:minmax(0,24rem) minmax(0,1fr); gap:2.5rem; align-items:start; }
+.hero h1{ font-size:clamp(2.2rem,4.6vw,3.6rem); line-height:1.2; font-weight:900; margin:0 0 1.2rem; letter-spacing:.02em; }
+.hero p{ margin:0 0 1rem; color:var(--ink2); max-width:34em; }
+.stage{ background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:.6rem .8rem 1rem; min-width:0; }
+
+.chapter{ max-width:78rem; margin:0 auto; padding-block:3.5rem; border-top:1px solid var(--rule);
+  display:grid; grid-template-columns:minmax(0,24rem) minmax(0,1fr); gap:2.5rem; align-items:start; }
+.chapter h2{ font-size:1.75rem; line-height:1.35; margin:0 0 1.1rem; font-weight:600; display:flex; gap:.7rem; align-items:baseline; }
+.num{ font-size:2.3rem; font-weight:900; color:var(--pole); line-height:1; }
+.chapter p{ margin:0 0 1rem; }
+.eq{ background:var(--panel); border-left:3px solid var(--pole); padding:.55rem .9rem; margin:0 0 1rem; font-size:1.05rem; overflow-x:auto; }
+.text{ position:sticky; top:calc(1rem + env(safe-area-inset-top,0px)); min-width:0; }
+
+.figs{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; min-width:0; }
+.figs .wide{ grid-column:1 / -1; }
+figure{ margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:.5rem .7rem .7rem; min-width:0; }
+figcaption{ font-size:.86rem; color:var(--ink2); line-height:1.5; margin-top:.35rem; }
+svg{ display:block; width:100%; height:auto; }
+canvas{ display:block; width:100%; height:auto; touch-action:none; cursor:grab; }
+canvas:active{ cursor:grabbing; }
+
+.controls{ display:grid; gap:.9rem; margin:1.3rem 0 1rem; }
+.ctl label{ display:flex; justify-content:space-between; gap:1rem; font-size:.92rem; color:var(--ink2); }
+.ctl output{ color:var(--ink); font-variant-numeric:tabular-nums; }
+input[type=range]{ width:100%; accent-color:var(--pole); margin:.2rem 0 0; }
+.btns{ display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; }
+.btns .lab{ font-size:.92rem; color:var(--ink2); margin-right:.2rem; }
+button{ font:inherit; font-size:.9rem; color:var(--ink); background:var(--panel); border:1px solid var(--rule);
+  border-radius:999px; padding:.3rem .9rem; cursor:pointer; }
+button:hover{ border-color:var(--ink2); }
+button[aria-pressed="true"]{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+:focus-visible{ outline:2px solid var(--pole); outline-offset:2px; }
+.readout{ font-size:.9rem; color:var(--ink2); display:grid; gap:.25rem; }
+.readout strong{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.note{ font-size:.88rem; color:var(--ink2); }
+
+footer{ max-width:78rem; margin:0 auto; padding-block:2rem 3rem; border-top:1px solid var(--rule); color:var(--ink2); font-size:.88rem; }
+footer a{ color:var(--pole); }
+footer ol{ padding-left:1.3rem; margin:.4rem 0 1rem; }
+
+.wall{ stroke:var(--ink); stroke-linecap:round; stroke-linejoin:round; fill:none; }
+.ghost{ stroke:var(--rule); fill:none; }
+.dash{ stroke:var(--ink2); stroke-dasharray:4 4; fill:none; }
+.gridl{ stroke:var(--grid); fill:none; }
+.axis{ stroke:var(--ink2); fill:none; }
+.inkS{ stroke:var(--ink); fill:none; } .ink2S{ stroke:var(--ink2); fill:none; }
+.poleS{ stroke:var(--pole); fill:none; } .poleF{ fill:var(--pole); }
+.posS{ stroke:var(--pos); fill:none; } .posF{ fill:var(--pos); }
+.negS{ stroke:var(--neg); fill:none; } .negF{ fill:var(--neg); }
+.flowS{ stroke:var(--flow); fill:none; } .flowF{ fill:var(--flow); }
+.brF{ fill:var(--bronze); } .brS{ stroke:var(--bronze); fill:none; } .brDS{ stroke:var(--bronzeD); fill:none; }
+.hubF{ fill:var(--hub); }
+.lbl{ font-size:13px; fill:var(--ink2); font-family:inherit; }
+.lblK{ font-size:13px; fill:var(--ink); font-family:inherit; }
+.lblI{ font-size:14px; fill:var(--ink); font-family:"Times New Roman",serif; font-style:italic; }
+.figs figure:not(.wide) .lbl, .figs figure:not(.wide) .lblK{ font-size:22px; }
+.figs figure:not(.wide) .lblI{ font-size:24px; }
+
+@media (max-width: 900px){
+  .hero,.chapter{ grid-template-columns:1fr; gap:1.5rem; }
+  .text{ position:static; }
+}
+@media (max-width: 620px){
+  .figs{ grid-template-columns:1fr; }
+  body{ font-size:16px; }
+  .figs figure:not(.wide) .lbl, .figs figure:not(.wide) .lblK{ font-size:19px; }
+}
+</style>
+<!-- embed-mode: 指定深淺色（要在繪圖前設定） -->
+<script>
+(function(){
+  var t = new URLSearchParams(location.search).get("theme");
+  if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+})();
+</script>
+</head>
+<body>
+<header class="hero">
+  <div>
+    <p class="part">船用螺旋槳　第一篇　幾何與描述</p>
+    <h1>一片葉子怎麼長在螺旋面上</h1>
+    <p>螺旋槳的每一片葉子，都可以用幾條沿半徑變化的曲線完整描述：螺距、弦長、厚度、拱度、側斜與縱傾。這一篇把它們一個一個拆開，看每個數字在幾何上代表什麼，以及設計者為什麼這樣選。</p>
+    <p>例子是經典的 DTMB 4119 三葉槳：無側斜、無縱傾，P/D 約 1.08，是許多數值方法拿來驗證的標準槳。</p>
+    <div class="controls">
+      <div class="btns" role="group" aria-label="葉數"><span class="lab">葉數 Z</span>
+        <button data-hz="3" aria-pressed="true">3</button><button data-hz="4" aria-pressed="false">4</button>
+        <button data-hz="5" aria-pressed="false">5</button><button data-hz="6" aria-pressed="false">6</button>
+      </div>
+      <div class="ctl">
+        <label for="hPD"><span>螺距比 P/D（0.7R）</span><output id="hPDOut"></output></label>
+        <input id="hPD" type="range" min="50" max="160" value="108">
+      </div>
+      <div class="ctl">
+        <label for="hSk"><span>葉尖側斜角</span><output id="hSkOut"></output></label>
+        <input id="hSk" type="range" min="0" max="60" value="0">
+      </div>
+    </div>
+    <div class="readout" id="heroRead"></div>
+  </div>
+  <div class="stage">
+    <canvas id="hero3d" aria-label="可拖動旋轉的螺旋槳立體圖"></canvas>
+    <figcaption>拖動畫面可以轉換視角。槳軸由左上游通往右下游，從船尾看是順時針旋轉的右旋槳。改葉數時弦長不變，所以面積比跟著葉數成正比。</figcaption>
+  </div>
+</header>
+
+<!-- 1.1 -->
+<section class="chapter" id="s1">
+  <div class="text">
+    <h2><span class="num">1.1</span>螺旋面：剖面躺在哪裡</h2>
+    <p>用一個和槳軸同心、半徑 <span class="m">r</span> 的圓柱去切葉片，切口就是這個半徑上的葉剖面。把圓柱沿母線剪開、攤平，剖面的弦線落在一條斜線上：槳轉一圈，這條線沿軸向前進一個螺距 <span class="m">P</span>。</p>
+    <div class="eq"><span class="m">tan φ = P / (2π r)</span></div>
+    <p><span class="m">φ</span> 是螺距角。同一個 <span class="m">P</span> 在不同半徑對應不同的角度：靠近轂的剖面又陡又斜，葉尖幾乎平躺。所以即使螺距沿半徑不變，葉片看起來也是扭的。</p>
+    <p>習慣上用 0.7<span class="m">R</span> 處的螺距代表整支槳，寫成螺距比 <span class="m">P/D</span>。DTMB 4119 在 0.7<span class="m">R</span> 是 1.084，從轂到葉尖只由 1.105 降到 1.076，幾乎是定螺距槳。</p>
+    <p class="note">這裡的 <span class="m">P</span> 用弦線（導緣到隨緣的連線）定義。舊式圖面常以葉面（壓力面）定義，對有拱度的剖面兩者略有差別。槳每轉實際前進的距離比 <span class="m">P</span> 短，差額叫滑脫，第二篇再談。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="r1"><span>切割圓柱的半徑 r/R</span><output id="r1Out"></output></label>
+        <input id="r1" type="range" min="20" max="100" value="70">
+      </div>
+      <div class="ctl">
+        <label for="p1"><span>螺距比 P/D（全半徑相同）</span><output id="p1Out"></output></label>
+        <input id="p1" type="range" min="50" max="160" value="108">
+      </div>
+    </div>
+    <div class="readout" id="s1Read"></div>
+  </div>
+  <div class="figs">
+    <figure>
+      <canvas id="cyl3d" aria-label="圓柱切割葉片的立體圖"></canvas>
+      <figcaption>紫色圓柱切過三片葉子，切口（紫線）就是這個半徑的剖面。可拖動旋轉。</figcaption>
+    </figure>
+    <figure>
+      <svg id="phi1" aria-label="螺距角沿半徑的分布"></svg>
+      <figcaption>螺距角 <span class="m">φ</span> 沿半徑的分布。實線是目前的定螺距，灰點是 DTMB 4119 的實際值。</figcaption>
+    </figure>
+    <figure class="wide">
+      <svg id="unwrap1" aria-label="攤平的圓柱與螺距三角形"></svg>
+      <figcaption>把圓柱攤平。橫軸是旋轉方向走過的弧長 <span class="m">rθ</span>，縱軸是往上游推進的距離。每條灰線是不同半徑的螺旋線，轉一圈都前進同樣的 <span class="m">P</span>；紫色的是目前選的半徑，上面放著那裡真實比例的剖面。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 1.2 -->
+<section class="chapter" id="s2">
+  <div class="text">
+    <h2><span class="num">1.2</span>葉剖面：厚度和拱度各管一件事</h2>
+    <p>攤平後的剖面就是一個二維翼型，用弦長 <span class="m">c</span>、最大厚度 <span class="m">t</span>、最大拱度 <span class="m">f</span> 三個數描述。厚度主要提供強度，拱度主要提供升力。</p>
+    <p>船用螺旋槳最常見的組合是 NACA 66 (mod) 厚度分布配 NACA <span class="m">a</span> = 0.8 平均線。<span class="m">a</span> = 0.8 的意思是：從導緣到 80% 弦長，葉背與葉面的壓力差維持定值，之後線性降到零。拱度和設計升力係數成正比：</p>
+    <div class="eq"><span class="m">C<sub>Li</sub> = (f/c) / 0.0679</span><br><span class="m">ΔC<sub>p</sub> = C<sub>Li</sub> / 0.9</span>（<span class="m">x/c ≤ 0.8</span>）</div>
+    <p>壓力差攤平，就沒有尖峰。葉背的最低壓力越平，越不容易空蝕。66 系列把最大厚度放在 45% 弦長，也是同樣的考量，這和航空常用的 NACA 四位數翼型（最大厚度在 30%）不同。</p>
+    <p>拖動 <span class="m">t/c</span> 和 <span class="m">f/c</span>，或直接載入 DTMB 4119 在不同半徑的剖面：根部又厚又短，為了強度；葉尖很薄；0.7<span class="m">R</span> 附近最接近一般的翼型。</p>
+    <p class="note">這是理想攻角下的薄翼理論負載。偏離理想攻角時導緣會出現吸力尖峰，空蝕的章節會用桶形圖討論。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="t2"><span>厚度比 t/c</span><output id="t2Out"></output></label>
+        <input id="t2" type="range" min="10" max="250" value="54">
+      </div>
+      <div class="ctl">
+        <label for="f2"><span>拱度比 f/c</span><output id="f2Out"></output></label>
+        <input id="f2" type="range" min="0" max="600" value="200">
+      </div>
+      <div class="btns" role="group" aria-label="載入 DTMB 4119 剖面"><span class="lab">DTMB 4119</span>
+        <button data-r2="0.3">0.3R</button><button data-r2="0.7">0.7R</button><button data-r2="0.95">0.95R</button>
+      </div>
+    </div>
+    <div class="readout" id="s2Read"></div>
+  </div>
+  <div class="figs">
+    <figure class="wide">
+      <svg id="sec2" aria-label="葉剖面"></svg>
+      <figcaption>真實比例的剖面。虛線是弦線，紫線是平均線（拱度線），厚度垂直平均線對稱加上去。上方是葉背（吸力面），下方是葉面（壓力面）。</figcaption>
+    </figure>
+    <figure>
+      <svg id="dcp2" aria-label="弦向壓力差分布"></svg>
+      <figcaption>理想攻角下的弦向壓力差。實線是 <span class="m">a</span> = 0.8，虛線是全弦均勻的 <span class="m">a</span> = 1.0。兩者曲線下的面積都等於 <span class="m">C<sub>Li</sub></span>。</figcaption>
+    </figure>
+    <figure>
+      <svg id="thk2" aria-label="兩種厚度分布比較"></svg>
+      <figcaption>同樣的 <span class="m">t/c</span>，NACA 66 (mod)（銅色）與 NACA 四位數 00xx（灰線）。點是各自的最大厚度位置。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 1.3 -->
+<section class="chapter" id="s3">
+  <div class="text">
+    <h2><span class="num">1.3</span>側斜與縱傾：把剖面沿螺旋面挪動</h2>
+    <p>剖面的形狀決定了，還要決定它放在哪裡。各半徑剖面的弦長中點連成中弦線。從轂中心垂直槳軸往外拉的一條直線叫母線，是畫圖和加工的基準。</p>
+    <p><strong>側斜</strong>：把剖面沿自己的螺旋線往後（逆旋轉方向）挪一個角度 <span class="m">θ<sub>s</sub></span>，葉片彎成鐮刀形。各半徑的剖面因此不會同時掃進船尾的高伴流區，振動和船殼上的脈動壓力都會降低。</p>
+    <p><strong>縱傾</strong>：把剖面沿軸向往下游挪 <span class="m">x<sub>R</sub></span>，葉片向後倒，可以加大和船殼的間隙。</p>
+    <p>側斜是沿螺旋線移動，所以也會順便帶來軸向位移，稱為側斜誘導縱傾：</p>
+    <div class="eq"><span class="m">x<sub>m</sub> = x<sub>R</sub> + r θ<sub>s</sub> tan φ</span></div>
+    <p>側視圖上看得最清楚：只加側斜、不加縱傾，中弦線也會往後倒。高側斜槳常故意給一點反向縱傾，把葉尖拉回來。試著把側斜拉到 45°，再找出讓葉尖回到母線上的縱傾角。</p>
+    <p class="note">側斜沿半徑採二次分布 <span class="m">θ<sub>s</sub> = θ<sub>tip</sub> ((r − r<sub>h</sub>)/(R − r<sub>h</sub>))²</span>，縱傾採直線，弦長、螺距都用 DTMB 4119。實際的槳會依設計調整這兩條分布。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="sk3"><span>葉尖側斜角 θ<sub>tip</sub></span><output id="sk3Out"></output></label>
+        <input id="sk3" type="range" min="0" max="60" value="25">
+      </div>
+      <div class="ctl">
+        <label for="rk3"><span>縱傾角（往下游為正）</span><output id="rk3Out"></output></label>
+        <input id="rk3" type="range" min="-150" max="150" value="0">
+      </div>
+      <div class="btns">
+        <button data-p3="0,0">DTMB 4119（0°, 0°）</button>
+        <button data-p3="25,0">中度側斜</button>
+        <button data-p3="45,0">高側斜</button>
+      </div>
+    </div>
+    <div class="readout" id="s3Read"></div>
+  </div>
+  <div class="figs">
+    <figure>
+      <svg id="front3" aria-label="從船尾看的投影圖"></svg>
+      <figcaption>從船尾往前看的投影圖。虛線是母線，紫線是中弦線，兩者在葉尖的夾角就是側斜角。箭頭是旋轉方向。</figcaption>
+    </figure>
+    <figure>
+      <svg id="side3" aria-label="側視圖"></svg>
+      <figcaption>側視圖，水流由左往右。銅色帶是導緣到隨緣的軸向範圍；灰色虛線是縱傾線 <span class="m">x<sub>R</sub></span>，紫線是中弦線 <span class="m">x<sub>m</sub></span>，兩者之差就是側斜誘導縱傾。</figcaption>
+    </figure>
+    <figure class="wide">
+      <canvas id="skew3d" aria-label="側斜槳的立體圖"></canvas>
+      <figcaption>同一組參數的立體圖。可拖動旋轉。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 1.4 -->
+<section class="chapter" id="s4">
+  <div class="text">
+    <h2><span class="num">1.4</span>面積比：葉片占了盤面多少</h2>
+    <p>葉片面積和盤面積 <span class="m">πR²</span> 的比值，是螺旋槳最常被引用的參數之一。展開面積只看弦長，等於把每個剖面攤平排在一起；投影面積是從船尾看過去，葉片在盤面上遮住的部分：</p>
+    <div class="eq"><span class="m">EAR = Z/(πR²) ∫ c dr</span><br><span class="m">PAR = Z/(πR²) ∫ c cos φ dr</span></div>
+    <p>剖面斜放在螺旋面上，從船尾看只剩 <span class="m">c cos φ</span> 的寬度，所以 PAR 永遠比 EAR 小，螺距越大差越多。DTMB 4119 的 EAR 算出來是 0.607（文獻標稱 0.60），PAR 大約是它的八成。</p>
+    <p>面積比主要由空蝕決定。推力一定時，面積越小，單位面積的負載越大，葉背壓力越低，越容易空蝕；面積越大，摩擦阻力越大，效率越低。葉數則和振動頻率、轂的空間有關：同樣的面積比，葉數越多，每片越窄。</p>
+    <p class="note">嚴格來說，沿螺旋面量的伸張面積（developed area）和展開面積（expanded area）略有不同，工程上常視為相同。投影面積這裡忽略了拱度與厚度。</p>
+    <div class="controls">
+      <div class="btns" role="group" aria-label="葉數"><span class="lab">葉數 Z</span>
+        <button data-z4="2" aria-pressed="false">2</button><button data-z4="3" aria-pressed="true">3</button>
+        <button data-z4="4" aria-pressed="false">4</button><button data-z4="5" aria-pressed="false">5</button>
+        <button data-z4="6" aria-pressed="false">6</button><button data-z4="7" aria-pressed="false">7</button>
+      </div>
+      <div class="ctl">
+        <label for="ear4"><span>目標展開面積比 EAR</span><output id="ear4Out"></output></label>
+        <input id="ear4" type="range" min="25" max="120" value="61">
+      </div>
+      <div class="ctl">
+        <label for="pd4"><span>螺距比 P/D（0.7R）</span><output id="pd4Out"></output></label>
+        <input id="pd4" type="range" min="50" max="160" value="108">
+      </div>
+      <div class="btns"><button id="keep4">保持 EAR，只改葉數</button></div>
+    </div>
+    <div class="readout" id="s4Read"></div>
+  </div>
+  <div class="figs">
+    <figure>
+      <svg id="disk4" aria-label="盤面與葉片投影"></svg>
+      <figcaption>從船尾看的盤面。銅色是葉片的投影，占盤面的比例就是 PAR。</figcaption>
+    </figure>
+    <figure>
+      <svg id="out4" aria-label="展開輪廓與投影寬度"></svg>
+      <figcaption>單一葉片。淺銅色是展開輪廓（寬度 <span class="m">c</span>），紫線是投影寬度 <span class="m">c cos φ</span>。根部螺距角大，兩者差最多。</figcaption>
+    </figure>
+    <figure class="wide">
+      <svg id="dist4" aria-label="DTMB 4119 的徑向分布"></svg>
+      <figcaption>DTMB 4119 的四條徑向分布，點是原始表格，線是本頁使用的內插（弦長和厚度以 <span class="m">√(1 − r/R)</span> 收到葉尖）。改變 EAR 時，弦長曲線整條等比例縮放（紫線）。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<footer>
+  <p>計算方法與 prop_geometry.py 相同：DTMB 4119 表格以單調三次內插（PCHIP），弦長與厚度寫成 <span class="m">g(x)√(1 − x)</span> 讓葉尖圓順收斂；<span class="m">a</span> = 0.8 平均線用解析式，在 <span class="m">C<sub>Li</sub></span> = 1 時最大拱度 0.0679；面積比以數值積分求得，三葉時 EAR = 0.607、PAR = 0.500。</p>
+  <p>資料與公式來源：</p>
+  <ol>
+    <li>DTMB 4119 幾何：Jessup (1989) 的模型試驗，以及 ITTC 1998 推進委員會的計算比對工作坊。</li>
+    <li>NACA <span class="m">a</span> 系列平均線與四位數厚度：Abbott &amp; von Doenhoff, <i>Theory of Wing Sections</i>。</li>
+    <li>NACA 66 (mod) 厚度：Brockett (1966), DTMB Report 1780。本頁的表值為近似值，只供教學。</li>
+    <li>側斜、縱傾與面積比的定義：Carlton, <i>Marine Propellers and Propulsion</i>；Kerwin &amp; Hadler, <i>Propulsion</i>（SNAME PNA 系列）。</li>
+  </ol>
+  <p>下一篇：動量理論與葉素理論，從速度三角形推出 <span class="m">K<sub>T</sub></span>、<span class="m">K<sub>Q</sub></span> 與敞水曲線。</p>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const f1 = v => v.toFixed(1), f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+const deg = r => r*180/Math.PI, rad = d => d*Math.PI/180;
+
+/* ================= 數值核心（與 prop_geometry.py 相同） ================= */
+const T = {
+  x:[.2,.3,.4,.5,.6,.7,.8,.9,.95,1],
+  c:[.3200,.3625,.4048,.4392,.4610,.4622,.4347,.3613,.2775,0],
+  p:[1.1050,1.1022,1.0983,1.0932,1.0879,1.0839,1.0811,1.0785,1.0770,1.0761],
+  t:[.0658,.0563,.0478,.0396,.0321,.0250,.0185,.0120,.0086,0],
+  f:[.01429,.02318,.02303,.02182,.02072,.02003,.01967,.01817,.01631,.01175],
+};
+function pchip(xs, ys){            // 與 scipy.interpolate.PchipInterpolator 相同的斜率規則
+  const n = xs.length, h = [], d = [], m = new Array(n).fill(0);
+  for(let k=0;k<n-1;k++){ h.push(xs[k+1]-xs[k]); d.push((ys[k+1]-ys[k])/h[k]); }
+  for(let k=1;k<n-1;k++){
+    if(d[k-1]*d[k] <= 0) m[k] = 0;
+    else { const w1 = 2*h[k]+h[k-1], w2 = h[k]+2*h[k-1]; m[k] = (w1+w2)/(w1/d[k-1] + w2/d[k]); }
+  }
+  const edge = (h0, h1, d0, d1) => { let v = ((2*h0+h1)*d0 - h0*d1)/(h0+h1);
+    if(Math.sign(v) !== Math.sign(d0)) v = 0; else if(Math.sign(d0) !== Math.sign(d1) && Math.abs(v) > 3*Math.abs(d0)) v = 3*d0; return v; };
+  m[0] = edge(h[0], h[1], d[0], d[1]); m[n-1] = edge(h[n-2], h[n-3], d[n-2], d[n-3]);
+  return x => {
+    let k = 0; while(k < n-2 && x > xs[k+1]) k++;
+    const t = (x - xs[k])/h[k], t2 = t*t, t3 = t2*t;
+    return (2*t3-3*t2+1)*ys[k] + (t3-2*t2+t)*h[k]*m[k] + (-2*t3+3*t2)*ys[k+1] + (t3-t2)*h[k]*m[k+1];
+  };
+}
+function tipRound(v){
+  const xs = T.x, g = v.slice(0,-1).map((y,k) => y/Math.sqrt(1 - xs[k])), n = g.length;
+  g.push(g[n-1] + (g[n-1]-g[n-2])/(xs[n-1]-xs[n-2])*(1 - xs[n-1]));
+  const p = pchip(xs, g);
+  return x => p(x)*Math.sqrt(Math.max(0, 1 - x));
+}
+const cD = tipRound(T.c), tD = tipRound(T.t), pD = pchip(T.x, T.p), fC = pchip(T.x, T.f);
+
+function meanA(x, a = 0.8){        // NACA a 系列平均線，C_Li = 1
+  const L = u => Math.abs(u) < 1e-14 ? 0 : u*u*Math.log(Math.abs(u));
+  const g = -1/(1-a)*(a*a*(0.5*Math.log(a) - 0.25) + 0.25);
+  const h = 1/(1-a)*(0.5*(1-a)**2*Math.log(1-a) - 0.25*(1-a)**2) + g;
+  const xl = x > 0 ? x*Math.log(x) : 0;
+  return 1/(2*Math.PI*(a+1))*(1/(1-a)*(0.5*L(a-x) - 0.5*L(1-x) + 0.25*(1-x)**2 - 0.25*(a-x)**2) - xl + g - h*x);
+}
+const YMAX = 0.06794;
+const camber = x => meanA(Math.min(1, Math.max(0, x)))/YMAX;   // 最大值 = 1
+const TH66x = [0,.005,.0075,.0125,.025,.05,.075,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1];
+const TH66y = [0,.0665,.0812,.1044,.1466,.2066,.2525,.2907,.3521,.4000,.4363,.4637,.4832,.4952,.5000,.4962,.4846,.4653,.4383,.4035,.3612,.3110,.2532,.1877,.1143,.0333];
+const th66s = pchip(TH66x.map(Math.sqrt), TH66y);
+const th66 = x => th66s(Math.sqrt(Math.min(1, Math.max(0, x))));          // 半厚 / t
+const th00 = x => 5*(0.2969*Math.sqrt(x) - 0.1260*x - 0.3516*x*x + 0.2843*x**3 - 0.1015*x**4);
+
+/* 葉片幾何：R = 1。回傳圓柱座標 [x 軸向（下游為正）, r, θ]。 */
+function makeBlade(o){
+  const pdS = o.pd/pD(.7), cs = o.cs ?? 1, rh = .2;
+  const skT = rad(o.skew ?? 0), rkT = Math.tan(rad(o.rake ?? 0));
+  return (x, xc, side, flat = false) => {
+    const c = 2*cD(x)*cs, t = flat ? 0 : 2*tD(x)*cs, pd = pD(x)*pdS;
+    const phi = Math.atan(pd/(Math.PI*x)), u = (x - rh)/(1 - rh);
+    const ts = skT*u*u, xR = (x - rh)*rkT, xm = xR + x*ts*Math.tan(phi);
+    const s = c*(0.5 - xc), y = flat ? 0 : c*fC(x)*camber(xc) + side*t*th66(xc);
+    return [xm - s*Math.sin(phi) - y*Math.cos(phi), x, -ts + (s*Math.cos(phi) - y*Math.sin(phi))/x];
+  };
+}
+const EARof = (Z, cs = 1) => { let s = 0; const N = 400; for(let k=0;k<N;k++){ const x = .2 + .8*(k+.5)/N; s += cD(x)*.8/N; } return 2*Z/Math.PI*s*cs; };
+const PARof = (Z, cs, pd) => { const S = pd/pD(.7); let s = 0; const N = 400;
+  for(let k=0;k<N;k++){ const x = .2 + .8*(k+.5)/N; s += cD(x)*Math.cos(Math.atan(pD(x)*S/(Math.PI*x)))*.8/N; } return 2*Z/Math.PI*s*cs; };
+const EAR0 = EARof(3);
+
+/* ================= 立體繪圖（canvas，painter's algorithm） ================= */
+function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function hex(c){ c = c.replace("#",""); if(c.length === 3) c = c.split("").map(v => v+v).join(""); return [0,2,4].map(k => parseInt(c.slice(k,k+2),16)); }
+function mix(a, b, t){ return `rgb(${a.map((v,k) => Math.round(v + (b[k]-v)*t)).join(",")})`; }
+let PAL = {};
+function readPalette(){ PAL = { br:hex(tok("--bronze")), brD:hex(tok("--bronzeD")), hub:hex(tok("--hub")), hubD:hex(tok("--hubD")),
+  pole:tok("--pole"), ink2:tok("--ink2"), panel:tok("--panel") }; }
+readPalette();
+
+const NR = 15, NC = 15;
+const RS = Array.from({length:NR}, (_, i) => .2 + .8*Math.sin(Math.PI/2*i/(NR-1)));
+const CS = Array.from({length:NC}, (_, j) => .5*(1 - Math.cos(Math.PI*j/(NC-1))));
+function buildMesh(o){
+  const B = makeBlade(o), quads = [];
+  for(let k=0;k<o.Z;k++){
+    const dth = 2*Math.PI*k/o.Z, G = {};
+    for(const side of [1,-1]){
+      G[side] = RS.map(x => CS.map(xc => { const p = B(x, xc, side); p[2] += dth; return p; }));
+      for(let i=0;i<NR-1;i++) for(let j=0;j<NC-1;j++)
+        quads.push({ p:[G[side][i][j], G[side][i+1][j], G[side][i+1][j+1], G[side][i][j+1]], m:"b" });
+    }
+    for(let i=0;i<NR-1;i++) quads.push({ p:[G[1][i][NC-1], G[1][i+1][NC-1], G[-1][i+1][NC-1], G[-1][i][NC-1]], m:"b" });
+  }
+  const cyl = (x0, x1, r0, r1, n) => { for(let q=0;q<n;q++){ const a = 2*Math.PI*q/n, b = 2*Math.PI*(q+1)/n;
+    quads.push({ p:[[x0,r0,a],[x1,r1,a],[x1,r1,b],[x0,r0,b]], m:"h", spin:false }); } };
+  cyl(-1.25, -.42, .085, .085, 20);          // 槳軸（上游）
+  cyl(-.42, -.36, .17, .2, 32);
+  cyl(-.36, .36, .2, .2, 32);                // 轂
+  cyl(.36, .58, .2, .13, 32); cyl(.58, .72, .13, .02, 32);   // 轂帽
+  return quads;
+}
+function viewer(canvas, opt){
+  const st = { yaw: opt.yaw ?? -.62, el: opt.el ?? .32, spin: opt.spin0 ?? 0, mesh: null, o: null, hl: null, auto: !!opt.auto, visible: true };
+  const ctx = canvas.getContext("2d"), aspect = opt.aspect ?? .78;
+  function size(){ const w = canvas.clientWidth || 600, dpr = Math.min(2, devicePixelRatio || 1);
+    canvas.width = Math.round(w*dpr); canvas.height = Math.round(w*aspect*dpr); }
+  function proj(p, spin){
+    const th = p[2] + spin, X = p[0], Y = p[1]*Math.cos(th), Zw = -p[1]*Math.sin(th);
+    const cy = Math.cos(st.yaw), sy = Math.sin(st.yaw), ce = Math.cos(st.el), se = Math.sin(st.el);
+    const x1 = X*cy - Y*sy, y1 = X*sy + Y*cy;
+    return [x1, y1*ce - Zw*se, y1*se + Zw*ce];      // [u, 深度, v]
+  }
+  const L = (() => { const l = [-.45, -.55, .7], n = Math.hypot(...l); return l.map(v => v/n); })();
+  function draw(){
+    if(!st.mesh) return;
+    const W = canvas.width, H = canvas.height, S = Math.min(W/2.55, H/2.1)*(opt.zoom ?? 1), cx = W*(opt.cx ?? .5), cyy = H*.52;
+    ctx.clearRect(0, 0, W, H);
+    const items = st.mesh.map(q => {
+      const P = q.p.map(p => proj(p, q.spin === false ? 0 : st.spin));
+      const a = [P[2][0]-P[0][0], P[2][1]-P[0][1], P[2][2]-P[0][2]], b = [P[3][0]-P[1][0], P[3][1]-P[1][1], P[3][2]-P[1][2]];
+      const n = [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]], nn = Math.hypot(...n) || 1;
+      const sh = Math.abs((n[0]*L[0] + n[1]*L[1] + n[2]*L[2])/nn);
+      return { P, d: (P[0][1]+P[1][1]+P[2][1]+P[3][1])/4, sh, m: q.m };
+    }).sort((A, B) => B.d - A.d);
+    ctx.lineJoin = "round";
+    for(const it of items){
+      const col = it.m === "h" ? mix(PAL.hubD, PAL.hub, .25 + .75*it.sh) : mix(PAL.brD, PAL.br, .2 + .8*it.sh);
+      ctx.beginPath();
+      it.P.forEach(([u,,v], k) => k ? ctx.lineTo(cx + S*u, cyy - S*v) : ctx.moveTo(cx + S*u, cyy - S*v));
+      ctx.closePath(); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = .8; ctx.fill(); ctx.stroke();
+    }
+    if(st.hl){                                  // 圓柱切割
+      const r = st.hl.r, B = makeBlade(st.o), dpr = W/(canvas.clientWidth || W);
+      ctx.strokeStyle = PAL.pole; ctx.globalAlpha = .55; ctx.lineWidth = 1.2*dpr;
+      for(const x of [-.75, .75]){ ctx.beginPath();
+        for(let q=0;q<=64;q++){ const [u,,v] = proj([x, r, 2*Math.PI*q/64], 0); q ? ctx.lineTo(cx+S*u, cyy-S*v) : ctx.moveTo(cx+S*u, cyy-S*v); }
+        ctx.stroke(); }
+      for(let q=0;q<12;q++){ const a = 2*Math.PI*q/12, A = proj([-.75, r, a], 0), Bp = proj([.75, r, a], 0);
+        ctx.globalAlpha = .18; ctx.beginPath(); ctx.moveTo(cx+S*A[0], cyy-S*A[2]); ctx.lineTo(cx+S*Bp[0], cyy-S*Bp[2]); ctx.stroke(); }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2.6*dpr;
+      for(let k=0;k<st.o.Z;k++){ ctx.beginPath(); let first = true;
+        for(const side of [1,-1]) for(let j=0;j<=40;j++){ const xc = side > 0 ? j/40 : 1 - j/40, p = B(r, xc, side); p[2] += 2*Math.PI*k/st.o.Z;
+          const [u,,v] = proj(p, st.spin); first ? ctx.moveTo(cx+S*u, cyy-S*v) : ctx.lineTo(cx+S*u, cyy-S*v); first = false; }
+        ctx.closePath(); ctx.stroke(); }
+    }
+  }
+  function set(o, hl){ st.o = o; st.mesh = buildMesh(o); st.hl = hl || null; draw(); }
+  let drag = null;
+  canvas.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, st.yaw, st.el]; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", e => { if(!drag) return;
+    st.yaw = drag[2] + (e.clientX - drag[0])*.01; st.el = Math.max(-1.3, Math.min(1.3, drag[3] + (e.clientY - drag[1])*.01)); draw(); });
+  canvas.addEventListener("pointerup", () => drag = null);
+  canvas.addEventListener("pointercancel", () => drag = null);
+  new IntersectionObserver(es => es.forEach(e => st.visible = e.isIntersecting)).observe(canvas);
+  size(); addEventListener("resize", () => { size(); draw(); });
+  if(st.auto && !reduceMotion){ let t0 = performance.now();
+    const loop = now => { const dt = Math.min(.05, (now - t0)/1000); t0 = now;
+      if(st.visible && !drag){ st.spin += dt*.6; draw(); } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); }
+  return { set, draw, st };
+}
+const VIEWERS = [];
+function retheme(){ readPalette(); VIEWERS.forEach(v => v.draw()); }
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+new MutationObserver(retheme).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+/* ================= SVG 工具 ================= */
+const svgInit = (id, W, H) => { const s = $(id); s.setAttribute("viewBox", `0 0 ${W} ${H}`); return s; };
+const L2 = (x1, y1, x2, y2, cls, ex = "") => `<line class="${cls}" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" ${ex}/>`;
+const PL = (pts, cls, ex = "") => `<polyline class="${cls}" points="${pts.map(([a,b]) => `${f1(a)},${f1(b)}`).join(" ")}" ${ex}/>`;
+const PG = (pts, cls, ex = "") => `<polygon class="${cls}" points="${pts.map(([a,b]) => `${f1(a)},${f1(b)}`).join(" ")}" ${ex}/>`;
+const TX = (x, y, s, cls = "lbl", ex = "") => `<text class="${cls}" x="${f1(x)}" y="${f1(y)}" ${ex}>${s}</text>`;
+const pressGroup = (sel, attr, val) => $$(sel).forEach(b => b.setAttribute("aria-pressed", String(b.dataset[attr] === String(val))));
+
+/* ================= Hero ================= */
+const hero = viewer($("#hero3d"), { auto:true, aspect:.74 }); VIEWERS.push(hero);
+let heroZ = 3;
+function drawHero(){
+  const pd = $("#hPD").value/100, sk = +$("#hSk").value;
+  $("#hPDOut").textContent = pd.toFixed(2); $("#hSkOut").textContent = `${sk}°`;
+  hero.set({ Z:heroZ, pd, skew:sk, rake:0 });
+  const ear = EARof(heroZ), par = PARof(heroZ, 1, pd);
+  $("#heroRead").innerHTML =
+    `<div>展開面積比 EAR：<strong>${f3(ear)}</strong>　投影面積比 PAR：<strong>${f3(par)}</strong></div>
+     <div>0.7R 螺距角：<strong>${f1(deg(Math.atan(pd/(Math.PI*.7))))}°</strong>　葉尖：<strong>${f1(deg(Math.atan(pd*pD(1)/pD(.7)/Math.PI)))}°</strong></div>`;
+}
+$$("[data-hz]").forEach(b => b.addEventListener("click", () => { heroZ = +b.dataset.hz; pressGroup("[data-hz]", "hz", heroZ); drawHero(); }));
+["#hPD", "#hSk"].forEach(id => $(id).addEventListener("input", drawHero));
+drawHero();
+
+/* ================= 1.1 ================= */
+const cylV = viewer($("#cyl3d"), { yaw:-.95, el:.28, aspect:.86, zoom:1.05, spin0:.35 }); VIEWERS.push(cylV);
+function drawS1(){
+  const x = $("#r1").value/100, pd = $("#p1").value/100;
+  $("#r1Out").textContent = x.toFixed(2); $("#p1Out").textContent = pd.toFixed(2);
+  // 定螺距：把 4119 的 P/D 分布換成常數
+  const oConst = { Z:3, pd, skew:0, rake:0 };
+  cylV.set(oConst, { r:x });
+  const phi = r => Math.atan(pd/(Math.PI*r));
+
+  // φ(r)
+  {
+    const W = 640, H = 500, svg = svgInit("#phi1", W, H), x0 = 92, x1 = 610, y0 = 430, y1 = 30;
+    const X = r => x0 + (r - .2)/.8*(x1 - x0), Y = d => y0 - d/80*(y0 - y1);
+    let g = "";
+    for(let d=0; d<=80; d+=20){ g += L2(x0, Y(d), x1, Y(d), "gridl") + TX(x0 - 12, Y(d) + 7, `${d}°`, "lbl", `text-anchor="end"`); }
+    for(const r of [.2,.4,.6,.8,1]) g += TX(X(r), y0 + 34, r.toFixed(1), "lbl", `text-anchor="middle"`);
+    g += TX((x0 + x1)/2, y0 + 66, "r/R", "lblI", `text-anchor="middle"`);
+    g += L2(x0, y0, x1, y0, "axis") + L2(x0, y0, x0, y1, "axis");
+    T.x.forEach((r, k) => g += `<circle cx="${f1(X(r))}" cy="${f1(Y(deg(Math.atan(T.p[k]/(Math.PI*r)))))}" r="6" fill="var(--ink2)" opacity=".55"/>`);
+    const pts = []; for(let k=0;k<=60;k++){ const r = .2 + .8*k/60; pts.push([X(r), Y(deg(phi(r)))]); }
+    g += PL(pts, "poleS", `stroke-width="4"`);
+    g += `<circle cx="${f1(X(x))}" cy="${f1(Y(deg(phi(x))))}" r="10" class="poleF"/>`;
+    g += TX(X(x) + (x > .7 ? -16 : 16), Y(deg(phi(x))) - 18, `${f1(deg(phi(x)))}°`, "lblK", x > .7 ? `text-anchor="end"` : "");
+    g += TX(x0 + 8, y1 + 4, "φ", "lblI");
+    svg.innerHTML = g;
+  }
+  // 攤平
+  {
+    const W = 640, H = 350, svg = svgInit("#unwrap1", W, H);
+    const ox = 46, oy = 296, maxP = 1.6*2, sc = Math.min((W - ox - 30)/(2*Math.PI), (oy - 22)/maxP);
+    const X = s => ox + sc*s, Y = a => oy - sc*a, P = pd*2;
+    let g = "";
+    g += L2(ox, oy, X(2*Math.PI) + 10, oy, "axis") + L2(ox, oy, ox, Y(maxP) - 6, "axis");
+    g += TX(X(2*Math.PI), oy + 46, "旋轉方向 rθ →（刻度：各半徑 r/R 轉一圈的弧長 2πr）", "lbl", `text-anchor="end"`);
+    g += TX(ox + 6, Y(maxP) + 8, "↑ 往上游推進", "lbl");
+    for(const r of [.2,.4,.6,.8,1]){
+      g += L2(X(0), Y(0), X(2*Math.PI*r), Y(P), "ink2S", `stroke-width="1" opacity=".55"`);
+      g += L2(X(2*Math.PI*r), Y(P) + 4, X(2*Math.PI*r), oy, "gridl", `stroke-dasharray="2 4"`);
+      g += TX(X(2*Math.PI*r), oy + 20, `${r.toFixed(1)}`, "lbl", `text-anchor="middle"`);
+    }
+    const bx = 2*Math.PI*x;
+    g += PG([[X(0), Y(0)], [X(bx), Y(0)], [X(bx), Y(P)]], "poleF", `opacity=".09"`);
+    g += L2(X(0), Y(0), X(bx), Y(P), "poleS", `stroke-width="2.4"`);
+    g += L2(X(bx), Y(0), X(bx), Y(P), "poleS", `stroke-width="1.4" stroke-dasharray="5 4"`);
+    g += L2(X(0), Y(P), X(bx), Y(P), "ghost", `stroke-width="1"`);
+    g += TX(X(bx) + 8, (Y(0) + Y(P))/2 + 5, `P = ${pd.toFixed(2)}D`, "lblK");
+    g += TX(X(bx/2), oy - 8, `2πr`, "lblI", `text-anchor="middle"`);
+    const ph = phi(x), ar = 34;
+    g += `<path d="M${f1(X(0) + ar)},${f1(Y(0))} A${ar},${ar} 0 0 0 ${f1(X(0) + ar*Math.cos(ph))},${f1(Y(0) - ar*Math.sin(ph))}" class="poleS" stroke-width="1.6"/>`;
+    g += TX(X(0) + ar + 6, Y(0) - 8, "φ", "lblI");
+    // 剖面（真實比例），中點放在線上 55% 處；導緣朝右上
+    const c = 2*cD(x), t = 2*tD(x), fc = fC(x), L = Math.hypot(bx, P), sm = .55*L;
+    const ux = bx/L, uy = P/L, nx = -uy, ny = ux;
+    if(c > 1e-3){
+      const pts = [];
+      for(const side of [1,-1]) for(let j=0;j<=40;j++){ const xc = side > 0 ? j/40 : 1 - j/40;
+        const s = sm + c*(.5 - xc), y = c*fc*camber(xc) + side*t*th66(xc);
+        pts.push([X(s*ux + y*nx), Y(s*uy + y*ny)]); }
+      g += PG(pts, "brF", `stroke="var(--bronzeD)" stroke-width="1"`);
+      g += TX(X((sm + c/2)*ux) + 10, Y((sm + c/2)*uy) - 6, "導緣", "lbl");
+      g += TX(X((sm - c/2)*ux) + 12, Y((sm - c/2)*uy) + 16, "隨緣", "lbl");
+    }
+    svg.innerHTML = g;
+  }
+  const phiTip = deg(phi(1)), phiHub = deg(phi(.2));
+  $("#s1Read").innerHTML =
+    `<div>這個半徑：<strong>2πr = ${f2(2*Math.PI*x)} R</strong>，<strong>P = ${f2(pd*2)} R</strong>，<strong>φ = ${f1(deg(phi(x)))}°</strong></div>
+     <div>同一個螺距，轂（0.2R）處 <strong>${f1(phiHub)}°</strong>，葉尖只有 <strong>${f1(phiTip)}°</strong></div>
+     <div>剖面弦長 <strong>c/D = ${f3(cD(x))}</strong>${x > .995 ? "（葉尖弦長為零）" : ""}</div>`;
+}
+["#r1", "#p1"].forEach(id => $(id).addEventListener("input", drawS1));
+drawS1();
+
+/* ================= 1.2 ================= */
+function drawS2(){
+  const tc = $("#t2").value/1000, fc = $("#f2").value/10000, CLi = fc/.0679;
+  $("#t2Out").textContent = tc.toFixed(3); $("#f2Out").textContent = fc.toFixed(4);
+  // 剖面
+  {
+    const W = 640, H = 270, svg = svgInit("#sec2", W, H), ox = 40, sc = 560, oy = 150;
+    const X = x => ox + sc*x, Y = y => oy - sc*y;
+    const xs = Array.from({length:81}, (_, j) => .5*(1 - Math.cos(Math.PI*j/80)));
+    const up = xs.map(x => [X(x), Y(fc*camber(x) + tc*th66(x))]), lo = xs.map(x => [X(x), Y(fc*camber(x) - tc*th66(x))]);
+    let g = "";
+    g += PG([...up, ...lo.slice().reverse()], "brF", `opacity=".55" stroke="var(--bronzeD)" stroke-width="1.4"`);
+    g += L2(X(0), Y(0), X(1), Y(0), "dash", `stroke-width="1.2"`);
+    g += PL(xs.map(x => [X(x), Y(fc*camber(x))]), "poleS", `stroke-width="2"`);
+    // 最大拱度
+    const xf = .515, yf = fc;
+    if(fc > .002){ g += L2(X(xf), Y(0), X(xf), Y(yf), "poleS", `stroke-width="1.4"`) + TX(X(xf) + 6, Y(yf/2) + 18, "f", "lblI", `style="fill:var(--pole)"`); }
+    // 最大厚度
+    const xt = .45, yc = fc*camber(xt), yt = tc*.5;
+    g += L2(X(xt), Y(yc + yt), X(xt), Y(yc - yt), "inkS", `stroke-width="1.2"`);
+    g += L2(X(xt) - 6, Y(yc + yt), X(xt) + 6, Y(yc + yt), "inkS") + L2(X(xt) - 6, Y(yc - yt), X(xt) + 6, Y(yc - yt), "inkS");
+    g += TX(X(xt) - 10, Y(yc) + 5, "t", "lblI", `text-anchor="end"`);
+    g += TX(X(0) - 4, Y(0) + 24, "導緣 LE", "lbl") + TX(X(1), Y(0) + 24, "隨緣 TE", "lbl", `text-anchor="end"`);
+    g += TX(X(.72), Y(fc*camber(.72) + tc*th66(.72)) - 10, "葉背（吸力面）", "lbl");
+    g += TX(X(.72), Y(fc*camber(.72) - tc*th66(.72)) + 22, "葉面（壓力面）", "lbl");
+    g += TX(X(.5), H - 10, "c", "lblI", `text-anchor="middle"`);
+    g += L2(X(0), H - 24, X(1), H - 24, "ghost") + L2(X(0), H - 30, X(0), H - 18, "ghost") + L2(X(1), H - 30, X(1), H - 18, "ghost");
+    svg.innerHTML = g;
+  }
+  // ΔCp
+  {
+    const W = 640, H = 460, svg = svgInit("#dcp2", W, H), x0 = 80, x1 = 610, y0 = 380, y1 = 40;
+    const ymax = Math.max(.4, Math.ceil(CLi/.9*1.25*10)/10);
+    const X = x => x0 + x*(x1 - x0), Y = v => y0 - v/ymax*(y0 - y1);
+    let g = "";
+    for(let k=0;k<=4;k++){ const v = ymax*k/4; g += L2(x0, Y(v), x1, Y(v), "gridl") + TX(x0 - 10, Y(v) + 7, v.toFixed(2), "lbl", `text-anchor="end"`); }
+    for(const x of [0,.2,.4,.6,.8,1]) g += TX(X(x), y0 + 32, x.toFixed(1), "lbl", `text-anchor="middle"`);
+    g += TX((x0 + x1)/2, y0 + 64, "x/c", "lblI", `text-anchor="middle"`);
+    g += L2(x0, y0, x1, y0, "axis") + L2(x0, y0, x0, y1, "axis");
+    const h8 = CLi/.9;
+    g += PG([[X(0), Y(0)], [X(0), Y(h8)], [X(.8), Y(h8)], [X(1), Y(0)]], "poleF", `opacity=".14"`);
+    g += PL([[X(0), Y(h8)], [X(.8), Y(h8)], [X(1), Y(0)]], "poleS", `stroke-width="3.5"`);
+    g += L2(X(0), Y(CLi), X(1), Y(CLi), "ink2S", `stroke-width="2.4" stroke-dasharray="8 6"`);
+    g += L2(X(.8), Y(0), X(.8), Y(h8), "gridl", `stroke-dasharray="3 4"`);
+    g += TX(x0 + 10, y1 + 4, "ΔCp", "lblI");
+    svg.innerHTML = g;
+  }
+  // 厚度比較
+  {
+    const W = 640, H = 460, svg = svgInit("#thk2", W, H), x0 = 40, x1 = 610, ym = 230;
+    const sc = Math.min(1400, 190/Math.max(tc*.5, .01));
+    const X = x => x0 + x*(x1 - x0), Y = y => ym - y*sc;
+    const xs = Array.from({length:101}, (_, j) => .5*(1 - Math.cos(Math.PI*j/100)));
+    let g = "";
+    g += PG([...xs.map(x => [X(x), Y(tc*th66(x))]), ...xs.slice().reverse().map(x => [X(x), Y(-tc*th66(x))])], "brF", `opacity=".55"`);
+    g += PL(xs.map(x => [X(x), Y(tc*th00(x))]), "ink2S", `stroke-width="2.6"`) + PL(xs.map(x => [X(x), Y(-tc*th00(x))]), "ink2S", `stroke-width="2.6"`);
+    g += L2(x0, ym, x1, ym, "dash");
+    g += `<circle cx="${f1(X(.45))}" cy="${f1(Y(tc*.5))}" r="8" fill="var(--bronzeD)"/><circle cx="${f1(X(.3))}" cy="${f1(Y(tc*.5))}" r="8" fill="var(--ink2)"/>`;
+    g += TX(X(.45), Y(-tc*.5) + 44, "66 (mod)：0.45c", "lblK", `text-anchor="middle"`);
+    g += TX(X(.3), Y(tc*.5) - 22, "00xx：0.30c", "lbl", `text-anchor="middle"`);
+    g += TX(x1, H - 14, sc > 1300 ? "垂直已放大" : `垂直放大 ${f1(sc/(x1 - x0))} 倍`, "lbl", `text-anchor="end"`);
+    svg.innerHTML = g;
+  }
+  $("#s2Read").innerHTML =
+    `<div>設計升力係數 <span class="m">C<sub>Li</sub></span>：<strong>${f3(CLi)}</strong></div>
+     <div>前 80% 弦長的壓力差 <span class="m">ΔC<sub>p</sub></span>：<strong>${f3(CLi/.9)}</strong></div>
+     <div class="note">平均線本身沒有厚度；厚度只改變壓力的平均值，不改變上下面的壓力差（薄翼理論）。</div>`;
+}
+["#t2", "#f2"].forEach(id => $(id).addEventListener("input", drawS2));
+$$("[data-r2]").forEach(b => b.addEventListener("click", () => { const x = +b.dataset.r2;
+  $("#t2").value = Math.round(tD(x)/cD(x)*1000); $("#f2").value = Math.round(fC(x)*10000); drawS2(); }));
+drawS2();
+
+/* ================= 1.3 ================= */
+const skV = viewer($("#skew3d"), { yaw:-1.15, el:.22, aspect:.62, zoom:.88, spin0:.3 }); VIEWERS.push(skV);
+function drawS3(){
+  const sk = +$("#sk3").value, rk = $("#rk3").value/10;
+  $("#sk3Out").textContent = `${sk}°`; $("#rk3Out").textContent = `${rk.toFixed(1)}°`;
+  const o = { Z:3, pd:pD(.7), skew:sk, rake:rk }, B = makeBlade(o);
+  skV.set(o);
+  const rs = Array.from({length:61}, (_, i) => .2 + .8*Math.sin(Math.PI/2*i/60));
+  // 投影圖（從船尾看）：u = Y, v = Z = −r sinθ，葉 0 轉到正上方（θ 加 −π/2）
+  {
+    const W = 640, H = 640, svg = svgInit("#front3", W, H), c0 = W/2, sc = 270;
+    const U = (r, th) => [c0 + sc*r*Math.cos(th), c0 - sc*(-r*Math.sin(th))];
+    let g = `<circle cx="${c0}" cy="${c0}" r="${sc}" class="dash"/>`;
+    for(let k=0;k<3;k++){
+      const off = -Math.PI/2 + 2*Math.PI*k/3;
+      const le = rs.map(x => { const p = B(x, 0, 0, true); return U(x, p[2] + off); });
+      const te = rs.map(x => { const p = B(x, 1, 0, true); return U(x, p[2] + off); });
+      g += PG([...le, ...te.slice().reverse()], "brF", `opacity="${k ? .35 : .7}" stroke="var(--bronzeD)" stroke-width="1.2"`);
+      if(k === 0){
+        g += PL(rs.map(x => { const p = B(x, .5, 0, true); return U(x, p[2] + off); }), "poleS", `stroke-width="3.2"`);
+        g += L2(c0, c0 - sc*.2, c0, c0 - sc*1.06, "inkS", `stroke-width="1.6" stroke-dasharray="7 5"`);
+        const tm = B(1, .5, 0, true)[2] + off;
+        if(sk > 0){ const ar = sc*1.0;
+          g += `<path d="M${f1(c0)},${f1(c0 - ar)} A${ar},${ar} 0 0 0 ${f1(U(1, tm)[0])},${f1(U(1, tm)[1])}" class="poleS" stroke-width="1.4" stroke-dasharray="3 3"/>`;
+          g += TX(U(1, tm)[0] - 8, U(1, tm)[1] - 16, `θ = ${sk}°`, "lblK", `text-anchor="end" style="fill:var(--pole)"`); }
+        const leT = U(.6, B(.6, 0, 0, true)[2] + off), teT = U(.6, B(.6, 1, 0, true)[2] + off);
+        g += TX(leT[0] + 12, leT[1], "導緣", "lbl") + TX(teT[0] - 12, teT[1], "隨緣", "lbl", `text-anchor="end"`);
+        g += TX(c0 + 10, c0 - sc*1.06 - 6, "母線", "lbl");
+      }
+    }
+    g += `<circle cx="${c0}" cy="${c0}" r="${sc*.2}" class="hubF" opacity=".8"/>`;
+    // 旋轉方向（順時針）
+    const ra = sc*1.12, a0 = rad(-30), a1 = rad(20);
+    const pa = [c0 + ra*Math.cos(a0), c0 + ra*Math.sin(a0)], pb = [c0 + ra*Math.cos(a1), c0 + ra*Math.sin(a1)];
+    g += `<path d="M${f1(pa[0])},${f1(pa[1])} A${ra},${ra} 0 0 1 ${f1(pb[0])},${f1(pb[1])}" class="ink2S" stroke-width="2"/>`;
+    const tg = [-Math.sin(a1), Math.cos(a1)];
+    g += PG([[pb[0] + 14*tg[0], pb[1] + 14*tg[1]], [pb[0] - 8*Math.cos(a1), pb[1] - 8*Math.sin(a1)], [pb[0] + 8*Math.cos(a1), pb[1] + 8*Math.sin(a1)]], "", `fill="var(--ink2)"`);
+    svg.innerHTML = g;
+  }
+  // 側視圖：橫軸 x（下游為正），縱軸 r
+  {
+    const W = 640, H = 640, svg = svgInit("#side3", W, H);
+    const xmin = -.75, xmax = 1.05, ox = 40, oy = 600, sc = Math.min((W - 2*ox)/(xmax - xmin), (oy - 40)/1.05);
+    const X = x => ox + (x - xmin)*sc, Y = r => oy - r*sc;
+    let g = "";
+    g += L2(X(0), Y(0), X(0), Y(1.05), "ghost", `stroke-width="1.2"`);
+    g += `<rect x="${f1(X(-.36))}" y="${f1(Y(.2))}" width="${f1(.72*sc)}" height="${f1(.2*sc)}" class="hubF" opacity=".6"/>`;
+    g += L2(X(xmin), Y(0), X(xmax), Y(0), "dash", `stroke-width="1"`);
+    const le = rs.map(x => [X(B(x, 0, 0, true)[0]), Y(x)]), te = rs.map(x => [X(B(x, 1, 0, true)[0]), Y(x)]);
+    g += PG([...le, ...te.slice().reverse()], "brF", `opacity=".5" stroke="var(--bronzeD)" stroke-width="1.2"`);
+    g += PL(rs.map(x => [X((x - .2)*Math.tan(rad(rk))), Y(x)]), "ink2S", `stroke-width="2.2" stroke-dasharray="8 5"`);
+    g += PL(rs.map(x => [X(B(x, .5, 0, true)[0]), Y(x)]), "poleS", `stroke-width="3.2"`);
+    g += TX(X(xmin) + 4, Y(1.0) - 4, "水流 →", "lbl");
+    g += TX(X(0) + 6, Y(1.04), "母線位置", "lbl");
+    g += TX(X(0), Y(0) - 8, "槳軸", "lbl", `text-anchor="middle"`);
+    svg.innerHTML = g;
+  }
+  const phT = Math.atan(pD(1)/Math.PI), xRt = .8*Math.tan(rad(rk)), xSk = rad(sk)*Math.tan(phT);
+  const back = deg(Math.atan(-xSk/.8));
+  $("#s3Read").innerHTML =
+    `<div>葉尖：縱傾 <strong>${f3(xRt)} R</strong> ＋ 側斜誘導縱傾 <strong>${f3(xSk)} R</strong> ＝ <strong>${f3(xRt + xSk)} R</strong></div>
+     <div>讓葉尖回到母線上需要的縱傾角：<strong>${f1(back)}°</strong></div>`;
+}
+["#sk3", "#rk3"].forEach(id => $(id).addEventListener("input", drawS3));
+$$("[data-p3]").forEach(b => b.addEventListener("click", () => { const [s, r] = b.dataset.p3.split(",").map(Number);
+  $("#sk3").value = s; $("#rk3").value = r*10; drawS3(); }));
+drawS3();
+
+/* ================= 1.4 ================= */
+let Z4 = 3;
+function drawS4(){
+  const ear = $("#ear4").value/100, pd = $("#pd4").value/100, cs = ear/EARof(Z4);
+  $("#ear4Out").textContent = ear.toFixed(2); $("#pd4Out").textContent = pd.toFixed(2);
+  const par = PARof(Z4, cs, pd), B = makeBlade({ Z:Z4, pd, cs, skew:0, rake:0 });
+  const rs = Array.from({length:61}, (_, i) => .2 + .8*Math.sin(Math.PI/2*i/60));
+  // 盤面
+  {
+    const W = 640, H = 640, svg = svgInit("#disk4", W, H), c0 = W/2, sc = 285;
+    const U = (r, th) => [c0 + sc*r*Math.cos(th), c0 + sc*r*Math.sin(th)];
+    let g = `<circle cx="${c0}" cy="${c0}" r="${sc}" fill="var(--grid)" opacity=".7" stroke="var(--ink2)" stroke-dasharray="6 5"/>`;
+    for(let k=0;k<Z4;k++){
+      const off = -Math.PI/2 + 2*Math.PI*k/Z4;
+      const le = rs.map(x => U(x, -B(x, 0, 0, true)[2] + off)), te = rs.map(x => U(x, -B(x, 1, 0, true)[2] + off));
+      g += PG([...le, ...te.slice().reverse()], "brF", `stroke="var(--bronzeD)" stroke-width="1.2"`);
+    }
+    g += `<circle cx="${c0}" cy="${c0}" r="${sc*.2}" class="hubF"/>`;
+    svg.innerHTML = g;
+  }
+  // 展開 vs 投影
+  {
+    const W = 640, H = 640, svg = svgInit("#out4", W, H), ox = W/2, oy = 600, sc = 540;
+    const X = v => ox + v*sc*.62, Y = r => oy - (r - .2)/.8*sc*.98;
+    let g = "";
+    const exp = rs.map(x => cD(x)*cs), pro = rs.map((x, i) => exp[i]*Math.cos(Math.atan(pD(x)*pd/pD(.7)/(Math.PI*x))));
+    g += PG([...rs.map((x, i) => [X(exp[i]), Y(x)]), ...rs.slice().reverse().map((x, i) => [X(-exp[rs.length - 1 - i]), Y(x)])], "brF", `opacity=".45" stroke="var(--bronzeD)" stroke-width="1.2"`);
+    g += PL(rs.map((x, i) => [X(pro[i]), Y(x)]), "poleS", `stroke-width="3"`) + PL(rs.map((x, i) => [X(-pro[i]), Y(x)]), "poleS", `stroke-width="3"`);
+    g += L2(X(0), Y(.2), X(0), Y(1) - 8, "dash");
+    for(const r of [.2,.6,1]) g += TX(16, Y(r) + 7, `${r.toFixed(1)}R`, "lbl");
+    const i7 = rs.findIndex(x => x >= .7);
+    g += L2(X(-exp[i7]), Y(rs[i7]), X(exp[i7]), Y(rs[i7]), "inkS", `stroke-width="1.2"`);
+    g += TX(X(exp[i7]) + 10, Y(rs[i7]) + 7, `c = ${f3(exp[i7]*2)} R`, "lblK");
+    g += TX(X(pro[i7]) - 4, Y(rs[i7]) + 36, "c cos φ", "lblI", `text-anchor="end" style="fill:var(--pole)"`);
+    svg.innerHTML = g;
+  }
+  // 徑向分布
+  {
+    const W = 640, H = 230, svg = svgInit("#dist4", W, H), pw = 140, gap = 20, y0 = 180, y1 = 34;
+    const panels = [
+      ["c/D", T.c, cD, 0, .6, x => cD(x)*cs],
+      ["P/D", T.p, pD, 0, 1.4, x => pD(x)*pd/pD(.7)],
+      ["t/D", T.t, tD, 0, .08, null],
+      ["f/c", T.f, fC, 0, .03, null],
+    ];
+    let g = "";
+    panels.forEach(([name, tab, fn, lo, hi, mod], n) => {
+      const x0 = 14 + n*(pw + gap), X = r => x0 + (r - .2)/.8*pw, Y = v => y0 - (v - lo)/(hi - lo)*(y0 - y1);
+      g += L2(x0, y0, x0 + pw, y0, "axis") + L2(x0, y0, x0, y1, "axis");
+      g += TX(x0 + 4, y1 - 12, name, "lblI");
+      g += TX(x0 - 2, y0 + 16, "0.2", "lbl") + TX(x0 + pw, y0 + 16, "1.0", "lbl", `text-anchor="end"`);
+      g += TX(x0 + pw, y1 - 12, `max ${hi}`, "lbl", `text-anchor="end"`);
+      const pts = []; for(let k=0;k<=60;k++){ const r = .2 + .8*k/60; pts.push([X(r), Y(fn(r))]); }
+      g += PL(pts, "brDS", `stroke-width="2"`);
+      if(mod){ const q = []; for(let k=0;k<=60;k++){ const r = .2 + .8*k/60; q.push([X(r), Y(mod(r))]); } g += PL(q, "poleS", `stroke-width="2" opacity=".9"`); }
+      T.x.forEach((r, k) => g += `<circle cx="${f1(X(r))}" cy="${f1(Y(tab[k]))}" r="3" fill="var(--ink)"/>`);
+    });
+    g += TX(W/2, H - 8, "橫軸皆為 r/R", "lbl", `text-anchor="middle"`);
+    svg.innerHTML = g;
+  }
+  $("#s4Read").innerHTML =
+    `<div>葉數 <strong>${Z4}</strong>：EAR <strong>${f3(ear)}</strong>，PAR <strong>${f3(par)}</strong>（PAR/EAR = ${f3(par/ear)}）</div>
+     <div>0.7R 弦長 <strong>c/D = ${f3(cD(.7)*cs)}</strong>（DTMB 4119 為 0.462）</div>
+     <div>盤面被葉片遮住 <strong>${(100*par).toFixed(0)}%</strong></div>`;
+}
+$$("[data-z4]").forEach(b => b.addEventListener("click", () => {
+  const keep = $("#keep4").getAttribute("aria-pressed") === "true";
+  const cs = ($("#ear4").value/100)/EARof(Z4);
+  Z4 = +b.dataset.z4; pressGroup("[data-z4]", "z4", Z4);
+  if(!keep) $("#ear4").value = Math.max(25, Math.min(120, Math.round(EARof(Z4, cs)*100)));
+  drawS4(); }));
+$("#keep4").setAttribute("aria-pressed", "true");
+$("#keep4").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); });
+["#ear4", "#pd4"].forEach(id => $(id).addEventListener("input", drawS4));
+drawS4();
+</script>
+<!-- embed-mode: ?embed=<節 id> 時只顯示那一節，供書頁以 iframe 嵌入 -->
+<style>
+html.embed body{ background:var(--paper); }
+html.embed body > :not(.embed-target):not(script):not(style){ display:none !important; }
+html.embed .embed-target{ display:block; max-width:none; margin:0; padding:.9rem 1rem 1rem; border-top:0; }
+html.embed .embed-target .text{ position:static; }
+html.embed .embed-target .text > :is(h2,p,.eq,.eqs){ display:none; }
+html.embed header.embed-target > div:first-child > :is(h1,p){ display:none; }
+html.embed .embed-target .controls{ margin:0 0 1rem; grid-template-columns:repeat(auto-fill,minmax(15rem,1fr)); column-gap:1.5rem; }
+html.embed .embed-target .stage{ margin-top:.5rem; }
+</style>
+<script>
+(function(){
+  var id = new URLSearchParams(location.search).get("embed");
+  if (!id) return;
+  var target = id === "hero" ? document.querySelector("header.hero") : document.getElementById(id);
+  if (!target) return;
+  target.classList.add("embed-target");
+  document.documentElement.classList.add("embed");
+  function send(){
+    parent.postMessage({ type: "ship-proto-height", id: id,
+      height: Math.ceil(target.getBoundingClientRect().height) + 2 }, "*");
+  }
+  if (window.ResizeObserver) new ResizeObserver(send).observe(target);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+_build/
+__pycache__/
+.ipynb_checkpoints/
+widgets/dist/
+# 由 tools/build_en.py 產生
+en/prototypes/
+en/widgets/
