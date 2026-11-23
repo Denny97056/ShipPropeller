@@ -11,6 +11,10 @@ project:
       children:
         - file: part1/index.md
         - file: part1/01-geometry.md
+    - title: 第二篇　動量與葉素理論
+      children:
+        - file: part2/index.md
+        - file: part2/02-momentum.md
     - title: 附錄
       children:
         - file: appendix/code.md

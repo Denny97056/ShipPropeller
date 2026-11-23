@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[1] / "code"
-MODULES = ["prop_geometry"]
+MODULES = ["prop_geometry", "prop_momentum"]
 
 results = []
 for m in MODULES:

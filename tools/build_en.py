@@ -14,6 +14,7 @@ import i18n_en  # noqa: E402
 CJK = re.compile(r"[　-〿一-鿿＀-￯]")
 JOBS = [  # (來源, 輸出, 對照表)
     (ROOT / "prototypes/geometry.html", ROOT / "en/prototypes/geometry.html", i18n_en.GEOMETRY),
+    (ROOT / "prototypes/momentum.html", ROOT / "en/prototypes/momentum.html", i18n_en.MOMENTUM),
     (ROOT / "widgets/src/proto-embed.mjs", ROOT / "en/widgets/dist/proto-embed.mjs", i18n_en.PROTO_EMBED),
 ]
 

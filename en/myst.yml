@@ -11,6 +11,10 @@ project:
       children:
         - file: part1/index.md
         - file: part1/01-geometry.md
+    - title: Part 2　Momentum and Blade Elements
+      children:
+        - file: part2/index.md
+        - file: part2/02-momentum.md
     - title: Appendix
       children:
         - file: appendix/code.md

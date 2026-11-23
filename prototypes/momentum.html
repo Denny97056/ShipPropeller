@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>船用螺旋槳 第二篇 動量與葉素</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: same two-column explorable layout as the hull-structure series — sticky text left, figures right. Bronze marks the blade. */
+:root{
+  --paper:#EEF2F1; --panel:#FBFCFC; --ink:#1C2632; --ink2:#5B6773; --rule:#C9D2D5; --grid:#E1E7E9;
+  --pos:#C0501A; --neg:#21659E; --flow:#127A55; --pole:#7A3DB0;
+  --bronze:#C08A48; --bronzeD:#5A3A18; --brLine:#8A5A26; --hub:#8C979F; --hubD:#3C454C;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#12171C; --panel:#192027; --ink:#E1E6E9; --ink2:#9AA5AE; --rule:#2E3842; --grid:#222A32;
+    --pos:#F08A4B; --neg:#5EA6E2; --flow:#45C08F; --pole:#BC8DEA;
+    --bronze:#E0AD6C; --bronzeD:#5E3F1E; --brLine:#E0AD6C; --hub:#9AA5AE; --hubD:#2B333A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#12171C; --panel:#192027; --ink:#E1E6E9; --ink2:#9AA5AE; --rule:#2E3842; --grid:#222A32;
+  --pos:#F08A4B; --neg:#5EA6E2; --flow:#45C08F; --pole:#BC8DEA;
+  --bronze:#E0AD6C; --bronzeD:#5E3F1E; --brLine:#E0AD6C; --hub:#9AA5AE; --hubD:#2B333A;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+body{ margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Hiragino Sans",system-ui,sans-serif;
+  font-size:17px; line-height:1.8;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+h1,h2,.num{ font-family:"Noto Serif TC","Songti TC","PMingLiU","Hiragino Mincho ProN",serif; text-wrap:balance; }
+.m{ font-family:"Times New Roman","Noto Serif TC",serif; font-style:italic; white-space:nowrap; }
+.part{ font-size:.95rem; color:var(--ink2); margin:0 0 .4rem; letter-spacing:.04em; }
+
+.hero{ max-width:78rem; margin:0 auto; padding-block:3.2rem 2.5rem;
+  display:grid; grid-template-columns:minmax(0,24rem) minmax(0,1fr); gap:2.5rem; align-items:start; }
+.hero h1{ font-size:clamp(2.2rem,4.6vw,3.6rem); line-height:1.2; font-weight:900; margin:0 0 1.2rem; letter-spacing:.02em; }
+.hero p{ margin:0 0 1rem; color:var(--ink2); max-width:34em; }
+.stage{ background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:.6rem .8rem 1rem; min-width:0; }
+
+.chapter{ max-width:78rem; margin:0 auto; padding-block:3.5rem; border-top:1px solid var(--rule);
+  display:grid; grid-template-columns:minmax(0,24rem) minmax(0,1fr); gap:2.5rem; align-items:start; }
+.chapter h2{ font-size:1.75rem; line-height:1.35; margin:0 0 1.1rem; font-weight:600; display:flex; gap:.7rem; align-items:baseline; }
+.num{ font-size:2.3rem; font-weight:900; color:var(--pole); line-height:1; }
+.chapter p{ margin:0 0 1rem; }
+.eq{ background:var(--panel); border-left:3px solid var(--pole); padding:.55rem .9rem; margin:0 0 1rem; font-size:1.05rem; overflow-x:auto; }
+.text{ position:sticky; top:calc(1rem + env(safe-area-inset-top,0px)); min-width:0; }
+
+.figs{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; min-width:0; }
+.figs .wide{ grid-column:1 / -1; }
+figure{ margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:.5rem .7rem .7rem; min-width:0; }
+figcaption{ font-size:.86rem; color:var(--ink2); line-height:1.5; margin-top:.35rem; }
+svg{ display:block; width:100%; height:auto; }
+canvas{ display:block; width:100%; height:auto; touch-action:none; cursor:grab; }
+canvas:active{ cursor:grabbing; }
+
+.controls{ display:grid; gap:.9rem; margin:1.3rem 0 1rem; }
+.ctl label{ display:flex; justify-content:space-between; gap:1rem; font-size:.92rem; color:var(--ink2); }
+.ctl output{ color:var(--ink); font-variant-numeric:tabular-nums; }
+input[type=range]{ width:100%; accent-color:var(--pole); margin:.2rem 0 0; }
+.btns{ display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; }
+.btns .lab{ font-size:.92rem; color:var(--ink2); margin-right:.2rem; }
+button{ font:inherit; font-size:.9rem; color:var(--ink); background:var(--panel); border:1px solid var(--rule);
+  border-radius:999px; padding:.3rem .9rem; cursor:pointer; }
+button:hover{ border-color:var(--ink2); }
+button[aria-pressed="true"]{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+:focus-visible{ outline:2px solid var(--pole); outline-offset:2px; }
+.readout{ font-size:.9rem; color:var(--ink2); display:grid; gap:.25rem; }
+.readout strong{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.note{ font-size:.88rem; color:var(--ink2); }
+
+footer{ max-width:78rem; margin:0 auto; padding-block:2rem 3rem; border-top:1px solid var(--rule); color:var(--ink2); font-size:.88rem; }
+footer a{ color:var(--pole); }
+footer ol{ padding-left:1.3rem; margin:.4rem 0 1rem; }
+
+.wall{ stroke:var(--ink); stroke-linecap:round; stroke-linejoin:round; fill:none; }
+.ghost{ stroke:var(--rule); fill:none; }
+.dash{ stroke:var(--ink2); stroke-dasharray:4 4; fill:none; }
+.gridl{ stroke:var(--grid); fill:none; }
+.axis{ stroke:var(--ink2); fill:none; }
+.inkS{ stroke:var(--ink); fill:none; } .ink2S{ stroke:var(--ink2); fill:none; }
+.poleS{ stroke:var(--pole); fill:none; } .poleF{ fill:var(--pole); }
+.posS{ stroke:var(--pos); fill:none; } .posF{ fill:var(--pos); }
+.negS{ stroke:var(--neg); fill:none; } .negF{ fill:var(--neg); }
+.flowS{ stroke:var(--flow); fill:none; } .flowF{ fill:var(--flow); }
+.brF{ fill:var(--bronze); } .brS{ stroke:var(--bronze); fill:none; } .brDS{ stroke:var(--bronzeD); fill:none; } .brL{ stroke:var(--brLine); fill:none; }
+.hubF{ fill:var(--hub); }
+.lbl{ font-size:13px; fill:var(--ink2); font-family:inherit; }
+.lblK{ font-size:13px; fill:var(--ink); font-family:inherit; }
+.lblI{ font-size:14px; fill:var(--ink); font-family:"Times New Roman",serif; font-style:italic; }
+.figs figure:not(.wide) .lbl, .figs figure:not(.wide) .lblK{ font-size:22px; }
+.figs figure:not(.wide) .lblI{ font-size:24px; }
+
+@media (max-width: 900px){
+  .hero,.chapter{ grid-template-columns:1fr; gap:1.5rem; }
+  .text{ position:static; }
+}
+@media (max-width: 620px){
+  .figs{ grid-template-columns:1fr; }
+  body{ font-size:16px; }
+  .figs figure:not(.wide) .lbl, .figs figure:not(.wide) .lblK{ font-size:19px; }
+}
+</style>
+<!-- embed-mode: 指定深淺色（要在繪圖前設定） -->
+<script>
+(function(){
+  var t = new URLSearchParams(location.search).get("theme");
+  if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+})();
+</script>
+</head>
+<body>
+<header class="hero">
+  <div>
+    <p class="part">船用螺旋槳　第二篇　動量與葉素理論</p>
+    <h1>推力從哪裡來，效率又丟到哪裡去</h1>
+    <p>螺旋槳把一團水往後推，水的動量增加多少，推力就有多大。這一篇先用最粗的模型（致動盤）找出效率的上限，再回到葉剖面，用速度三角形把推力和扭矩拆到每一個半徑上，最後積分成設計時天天在查的敞水曲線。</p>
+    <p>例子是 Wageningen B 系列的迴歸多項式，以及第一篇的 DTMB 4119。先從最直觀的量開始：槳每轉一圈，實際前進了多少。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="hJ"><span>進速比 J = V<sub>A</sub>/(nD)</span><output id="hJOut"></output></label>
+        <input id="hJ" type="range" min="5" max="110" value="70">
+      </div>
+    </div>
+    <div class="readout" id="heroRead"></div>
+  </div>
+  <div class="figs">
+    <figure>
+      <svg id="heroTri" aria-label="0.7R 的螺距三角形與實際前進距離"></svg>
+      <figcaption>0.7<span class="m">R</span> 的圓柱攤平。銅色是剖面的螺距線（轉一圈前進 <span class="m">P</span>），綠色是槳實際前進的 <span class="m">J D</span>，兩者的差就是滑脫。</figcaption>
+    </figure>
+    <figure>
+      <svg id="heroOW" aria-label="B4-70 的敞水曲線"></svg>
+      <figcaption>B4-70、<span class="m">P/D</span> = 1.0 的敞水曲線（B 系列迴歸式）。直線標出目前的 <span class="m">J</span>。</figcaption>
+    </figure>
+  </div>
+</header>
+
+<!-- 2.1 -->
+<section class="chapter" id="s1">
+  <div class="text">
+    <h2><span class="num">2.1</span>致動盤：推力就是動量的增加</h2>
+    <p>先把螺旋槳想成一片很薄、會讓水壓突然升高的圓盤，不管葉片的形狀。穿過圓盤的水被加速，流管往下游收縮。對流管用動量守恆與白努利方程，可以得到圓盤處的速度增量正好是遠方尾流增量的一半：</p>
+    <div class="eq"><span class="m">V<sub>disk</sub> = V<sub>A</sub>(1 + a)，V<sub>wake</sub> = V<sub>A</sub>(1 + 2a)</span><br><span class="m">C<sub>T</sub> = T / (½ρAV<sub>A</sub>²) = 4a(1 + a)</span></div>
+    <p>有用功率是 <span class="m">T V<sub>A</sub></span>，槳交給水的功率是 <span class="m">T V<sub>A</sub>(1 + a)</span>，所以理想效率</p>
+    <div class="eq"><span class="m">η<sub>i</sub> = 1/(1 + a) = 2 / (1 + √(1 + C<sub>T</sub>))</span></div>
+    <p>這是任何推進器都超越不了的上限，損失的部分是留在尾流裡的動能。負載越重（<span class="m">C<sub>T</sub></span> 越大），要把水加速得越多，效率越低。要降低 <span class="m">C<sub>T</sub></span>，最直接的辦法是加大直徑：同樣的推力分給更多的水。</p>
+    <p class="note">致動盤假設流體無黏、推力均勻分布在盤面上、尾流不旋轉。下一節的葉素理論會把旋轉和黏性損失加回來。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="ct1"><span>推力負載係數 C<sub>T</sub></span><output id="ct1Out"></output></label>
+        <input id="ct1" type="range" min="0" max="100" value="50">
+      </div>
+      <div class="btns"><span class="lab">負載</span>
+        <button data-ct1="0.5">輕 0.5</button><button data-ct1="2">中 2</button><button data-ct1="8">重 8</button>
+      </div>
+    </div>
+    <div class="readout" id="s1Read"></div>
+  </div>
+  <div class="figs">
+    <figure class="wide">
+      <svg id="tube1" aria-label="致動盤的流管"></svg>
+      <figcaption>穿過致動盤（銅色）的流管，水流由左往右，半徑以盤面半徑 <span class="m">R</span> 為單位。收縮的形狀用均勻負載圓盤的中心線速度 <span class="m">V<sub>A</sub>[1 + a(1 + x/√(x² + R²))]</span> 配連續方程近似。</figcaption>
+    </figure>
+    <figure>
+      <svg id="vp1" aria-label="沿軸線的速度與壓力"></svg>
+      <figcaption>沿軸線的速度（上）與壓力（下）。速度連續增加；壓力在盤前降低、通過盤面時跳升 <span class="m">C<sub>T</sub></span>，到遠方回到環境壓力。</figcaption>
+    </figure>
+    <figure>
+      <svg id="eta1" aria-label="理想效率與推力負載"></svg>
+      <figcaption>理想效率隨推力負載下降（橫軸為對數）。點是目前的 <span class="m">C<sub>T</sub></span>。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2.2 -->
+<section class="chapter" id="s2">
+  <div class="text">
+    <h2><span class="num">2.2</span>速度三角形：一個剖面看到什麼</h2>
+    <p>回到葉片本身。在半徑 <span class="m">r</span> 的剖面上，水從前方以 <span class="m">V<sub>A</sub></span> 流來，剖面本身以 <span class="m">ωr</span> 轉動。兩者合成的角度叫進角 <span class="m">β</span>：</p>
+    <div class="eq"><span class="m">tan β = V<sub>A</sub> / (ωr) = J / (π r/R)</span></div>
+    <p>槳在推水，水也反過來被槳帶動：軸向多了 <span class="m">a V<sub>A</sub></span>，切向被帶著轉了 <span class="m">a′ωr</span>。剖面真正看到的相對速度 <span class="m">W</span> 方向是誘導進角 <span class="m">β<sub>i</sub></span>，攻角是螺距角減去它：<span class="m">α = φ − β<sub>i</sub></span>。</p>
+    <p>升力 <span class="m">dL</span> 垂直於 <span class="m">W</span>，阻力 <span class="m">dD</span> 沿著 <span class="m">W</span>，投影到軸向和切向就是推力與扭矩：</p>
+    <div class="eq"><span class="m">dT = dL cos β<sub>i</sub> − dD sin β<sub>i</sub></span><br><span class="m">dQ = r (dL sin β<sub>i</sub> + dD cos β<sub>i</sub>)</span></div>
+    <p>把這個剖面的效率 <span class="m">dT V<sub>A</sub> / (dQ ω)</span> 整理一下，正好拆成三個因子：軸向損失 <span class="m">1/(1 + a)</span>（就是致動盤的那一項）、尾流旋轉損失 <span class="m">1 − a′</span>，以及黏性損失 <span class="m">tan β<sub>i</sub> / tan(β<sub>i</sub> + γ)</span>，其中 <span class="m">tan γ = C<sub>D</sub>/C<sub>L</sub></span>。</p>
+    <p class="note">本節的 <span class="m">a</span>、<span class="m">a′</span> 是 DTMB 4119 用下一節的葉素–動量理論解出來的值。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="x2"><span>剖面半徑 r/R</span><output id="x2Out"></output></label>
+        <input id="x2" type="range" min="25" max="95" value="70">
+      </div>
+      <div class="ctl">
+        <label for="j2"><span>進速比 J</span><output id="j2Out"></output></label>
+        <input id="j2" type="range" min="40" max="110" value="83">
+      </div>
+      <div class="ctl">
+        <label for="cd2"><span>剖面阻力係數 C<sub>D</sub></span><output id="cd2Out"></output></label>
+        <input id="cd2" type="range" min="0" max="30" value="8">
+      </div>
+    </div>
+    <div class="readout" id="s2Read"></div>
+  </div>
+  <div class="figs">
+    <figure class="wide">
+      <svg id="tri2" aria-label="葉剖面的速度三角形"></svg>
+      <figcaption>速度三角形。灰線是不計誘導速度的 <span class="m">V<sub>A</sub></span> 與 <span class="m">ωr</span>，紫線是誘導速度 <span class="m">a V<sub>A</sub></span>、<span class="m">a′ωr</span>，綠線是剖面看到的 <span class="m">W</span>。銅色虛線是剖面的弦線（螺距角 <span class="m">φ</span>）。</figcaption>
+    </figure>
+    <figure>
+      <svg id="force2" aria-label="升力、阻力與推力、切向力"></svg>
+      <figcaption>剖面上的力。升力（綠）垂直於 <span class="m">W</span>，阻力（橘）沿著 <span class="m">W</span>；兩者合成後投影成推力 <span class="m">dT</span>（往上游）與阻礙旋轉的切向力 <span class="m">dQ/r</span>。阻力已放大 5 倍以便看見。</figcaption>
+    </figure>
+    <figure>
+      <svg id="eff2" aria-label="剖面效率的三個因子"></svg>
+      <figcaption>這個剖面的效率拆成三個因子，乘起來就是最右邊的剖面效率。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2.3 -->
+<section class="chapter" id="s3">
+  <div class="text">
+    <h2><span class="num">2.3</span>葉素–動量理論：把整支槳積分起來</h2>
+    <p>前一節的 <span class="m">a</span> 和 <span class="m">a′</span> 要怎麼求？把槳盤切成一圈一圈的環，每個環同時滿足兩件事：葉剖面算出來的力（上一節），要等於這個環的動量變化（2.1 的致動盤，只是換成一個環）：</p>
+    <div class="eq"><span class="m">dT = 4πr ρ V<sub>A</sub>² (1 + a) a F dr</span><br><span class="m">dQ = 4πr³ ρ V<sub>A</sub> ω (1 + a) a′ F dr</span></div>
+    <p>兩組式子各自有 <span class="m">a</span>、<span class="m">a′</span>，反覆代入直到收斂。<span class="m">F</span> 是 Prandtl 葉尖修正：葉數有限，水會從葉尖繞過去，越靠近葉尖，動量理論高估得越多。</p>
+    <p>積分後用無因次係數表示：</p>
+    <div class="eq"><span class="m">K<sub>T</sub> = T / (ρn²D⁴)，K<sub>Q</sub> = Q / (ρn²D⁵)</span><br><span class="m">η<sub>0</sub> = J K<sub>T</sub> / (2π K<sub>Q</sub>)</span></div>
+    <p>和 DTMB 4119 的試驗比較：在設計點 <span class="m">J</span> = 0.833，效率算得很準（0.70 對 0.69），但 <span class="m">K<sub>T</sub></span> 和 <span class="m">K<sub>Q</sub></span> 都高估了四成多。原因是剖面用了二維翼型的升力：寬葉片上的流線是彎的，實際的有效拱度和攻角都比較小。第三篇的升力線理論會處理這件事。</p>
+    <p class="note">剖面升力用薄翼理論 <span class="m">C<sub>L</sub> = 2π(α − α<sub>0</sub>)</span>，零升力角 <span class="m">α<sub>0</sub></span> 由 <span class="m">a</span> = 0.8 平均線積分而得（<span class="m">C<sub>Li</sub></span> = 1 時為 −7.58°），再乘上各半徑的 <span class="m">C<sub>Li</sub></span>；阻力係數沿半徑取定值。</p>
+    <div class="controls">
+      <div class="ctl">
+        <label for="j3"><span>進速比 J</span><output id="j3Out"></output></label>
+        <input id="j3" type="range" min="40" max="115" value="83">
+      </div>
+      <div class="ctl">
+        <label for="cd3"><span>剖面阻力係數 C<sub>D</sub></span><output id="cd3Out"></output></label>
+        <input id="cd3" type="range" min="0" max="30" value="8">
+      </div>
+      <div class="btns"><button id="tip3" aria-pressed="true">Prandtl 葉尖修正</button></div>
+    </div>
+    <div class="readout" id="s3Read"></div>
+  </div>
+  <div class="figs">
+    <figure>
+      <svg id="rad3" aria-label="推力與扭矩的徑向分布"></svg>
+      <figcaption>推力（銅色）與扭矩（藍色，×10）沿半徑的分布，曲線下的面積就是 <span class="m">K<sub>T</sub></span>、<span class="m">10K<sub>Q</sub></span>。虛線是不加葉尖修正的結果。</figcaption>
+    </figure>
+    <figure>
+      <svg id="ind3" aria-label="誘導因子沿半徑的分布"></svg>
+      <figcaption>軸向誘導因子 <span class="m">a</span>（紫）、切向誘導因子 <span class="m">a′</span>（紫虛線）與葉尖修正係數 <span class="m">F</span>（灰）。</figcaption>
+    </figure>
+    <figure class="wide">
+      <svg id="ow3" aria-label="DTMB 4119 的敞水曲線"></svg>
+      <figcaption>葉素–動量理論算出的 DTMB 4119 敞水曲線（線），與設計點的試驗值（圓圈，Jessup 1989）。直線標出目前的 <span class="m">J</span>。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2.4 -->
+<section class="chapter" id="s4">
+  <div class="text">
+    <h2><span class="num">2.4</span>敞水曲線與 B 系列：用圖表選槳</h2>
+    <p>敞水曲線是槳在均勻來流中的「身分證」：橫軸 <span class="m">J</span>，縱軸 <span class="m">K<sub>T</sub></span>、<span class="m">10K<sub>Q</sub></span> 和 <span class="m">η<sub>0</sub></span>。<span class="m">J</span> 小代表重負載（推力大、效率低），<span class="m">J</span> 接近 <span class="m">P/D</span> 時推力趨近於零。</p>
+    <p>Wageningen B 系列是荷蘭 MARIN 系統化試驗的一百多支模型槳。Oosterveld 與 van Oossanen（1975）把結果迴歸成多項式，<span class="m">K<sub>T</sub></span> 有 39 項、<span class="m">K<sub>Q</sub></span> 有 47 項：</p>
+    <div class="eq"><span class="m">K<sub>T</sub> = Σ C<sub>k</sub> J<sup>s</sup> (P/D)<sup>t</sup> (A<sub>E</sub>/A<sub>0</sub>)<sup>u</sup> Z<sup>v</sup></span></div>
+    <p>典型的選槳問題：已知船速（換成進速 <span class="m">V<sub>A</sub></span>）、需要的推力 <span class="m">T</span> 和直徑 <span class="m">D</span>，求轉速和螺距。把 <span class="m">n</span> 消掉，</p>
+    <div class="eq"><span class="m">K<sub>T</sub> / J² = T / (ρD²V<sub>A</sub>²)</span></div>
+    <p>右邊是已知的常數，所以設計點一定落在拋物線 <span class="m">K<sub>T</sub> = c J²</span> 上。每個 <span class="m">P/D</span> 和拋物線各有一個交點，挑效率最高的那個。</p>
+    <p class="note">迴歸式的適用範圍是 <span class="m">Z</span> = 2–7、<span class="m">A<sub>E</sub>/A<sub>0</sub></span> = 0.30–1.05、<span class="m">P/D</span> = 0.5–1.4，雷諾數 2×10⁶。預設值重現 MIT 2.611 講義的例題：B5-75、<span class="m">K<sub>T</sub>/J²</span> = 0.544，最佳 <span class="m">P/D</span> = 1.0、<span class="m">J</span> = 0.64、<span class="m">η<sub>0</sub></span> = 0.61。</p>
+    <div class="controls">
+      <div class="btns" role="group" aria-label="葉數"><span class="lab">葉數 Z</span>
+        <button data-z4="2" aria-pressed="false">2</button><button data-z4="3" aria-pressed="false">3</button>
+        <button data-z4="4" aria-pressed="false">4</button><button data-z4="5" aria-pressed="true">5</button>
+        <button data-z4="6" aria-pressed="false">6</button><button data-z4="7" aria-pressed="false">7</button>
+      </div>
+      <div class="ctl">
+        <label for="ear4"><span>展開面積比 A<sub>E</sub>/A<sub>0</sub></span><output id="ear4Out"></output></label>
+        <input id="ear4" type="range" min="30" max="105" value="75">
+      </div>
+      <div class="ctl">
+        <label for="pd4"><span>標示的螺距比 P/D</span><output id="pd4Out"></output></label>
+        <input id="pd4" type="range" min="50" max="140" value="100">
+      </div>
+      <div class="ctl">
+        <label for="c4"><span>設計條件 K<sub>T</sub>/J²</span><output id="c4Out"></output></label>
+        <input id="c4" type="range" min="10" max="200" value="54">
+      </div>
+    </div>
+    <div class="readout" id="s4Read"></div>
+  </div>
+  <div class="figs">
+    <figure class="wide">
+      <svg id="ow4" aria-label="B 系列敞水圖"></svg>
+      <figcaption>B 系列敞水圖。灰線是 <span class="m">P/D</span> = 0.6、0.8、1.0、1.2、1.4 的 <span class="m">K<sub>T</sub></span>（左到右）；紫色是標示的 <span class="m">P/D</span>，實線 <span class="m">K<sub>T</sub></span>、虛線 <span class="m">10K<sub>Q</sub></span>、粗線 <span class="m">η<sub>0</sub></span>。綠色拋物線是設計條件，點是各 <span class="m">P/D</span> 的交點。</figcaption>
+    </figure>
+    <figure>
+      <svg id="opt4" aria-label="交點效率與螺距比"></svg>
+      <figcaption>每個 <span class="m">P/D</span> 在設計拋物線上的效率。最高點就是這個葉數、面積比下的最佳螺距。</figcaption>
+    </figure>
+    <figure>
+      <svg id="cmp4" aria-label="葉數與面積比的影響"></svg>
+      <figcaption>同一個設計條件下，各葉數的最佳效率隨面積比的變化，線段只畫在試驗過的面積比範圍內。葉數少、面積比小的槳效率較高，但葉面負載大、容易空蝕，所以通常只用剛好夠的面積比（第四篇）。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<footer>
+  <p>計算方法與 prop_momentum.py 相同：致動盤用一維動量理論；B 系列用 Oosterveld &amp; van Oossanen 的 39＋47 項迴歸式（雷諾數 2×10⁶），重現 MIT 2.611 講義的兩個例題；葉素–動量理論用 40 個半徑元素、Prandtl 葉尖修正，DTMB 4119 幾何沿用第一篇的內插。設計點 <span class="m">J</span> = 0.833 算得 <span class="m">K<sub>T</sub></span> = 0.215、<span class="m">10K<sub>Q</sub></span> = 0.406、<span class="m">η<sub>0</sub></span> = 0.700（試驗 0.146、0.280、0.69）。</p>
+  <p>資料與公式來源：</p>
+  <ol>
+    <li>致動盤與葉素理論：Carlton, <i>Marine Propellers and Propulsion</i>；Kerwin &amp; Hadler, <i>Propulsion</i>（SNAME PNA 系列）。</li>
+    <li>B 系列迴歸式：Oosterveld &amp; van Oossanen (1975), <i>Further computer-analyzed data of the Wageningen B-screw series</i>, International Shipbuilding Progress 22。</li>
+    <li>選槳例題與檢核值：MIT OpenCourseWare 2.611 <i>Marine Power and Propulsion</i>（2006），“Using KT and KQ for design”。</li>
+    <li>DTMB 4119 試驗值：Jessup (1989)；ITTC 1998 推進委員會的計算比對工作坊。</li>
+    <li><span class="m">a</span> = 0.8 平均線的理想攻角：Abbott &amp; von Doenhoff, <i>Theory of Wing Sections</i>。</li>
+  </ol>
+  <p>下一篇：升力線與最佳環量，用誘導速度取代動量理論，並找出效率最高的環量分布。</p>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const f1 = v => v.toFixed(1), f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+const deg = r => r*180/Math.PI, rad = d => d*Math.PI/180;
+
+/* ================= 數值核心（與 prop_momentum.py 相同） ================= */
+// DTMB 4119（第一篇）
+const T = {
+  x:[.2,.3,.4,.5,.6,.7,.8,.9,.95,1],
+  c:[.3200,.3625,.4048,.4392,.4610,.4622,.4347,.3613,.2775,0],
+  p:[1.1050,1.1022,1.0983,1.0932,1.0879,1.0839,1.0811,1.0785,1.0770,1.0761],
+  f:[.01429,.02318,.02303,.02182,.02072,.02003,.01967,.01817,.01631,.01175],
+};
+function pchip(xs, ys){            // 與 scipy.interpolate.PchipInterpolator 相同的斜率規則
+  const n = xs.length, h = [], d = [], m = new Array(n).fill(0);
+  for(let k=0;k<n-1;k++){ h.push(xs[k+1]-xs[k]); d.push((ys[k+1]-ys[k])/h[k]); }
+  for(let k=1;k<n-1;k++){
+    if(d[k-1]*d[k] <= 0) m[k] = 0;
+    else { const w1 = 2*h[k]+h[k-1], w2 = h[k]+2*h[k-1]; m[k] = (w1+w2)/(w1/d[k-1] + w2/d[k]); }
+  }
+  const edge = (h0, h1, d0, d1) => { let v = ((2*h0+h1)*d0 - h0*d1)/(h0+h1);
+    if(Math.sign(v) !== Math.sign(d0)) v = 0; else if(Math.sign(d0) !== Math.sign(d1) && Math.abs(v) > 3*Math.abs(d0)) v = 3*d0; return v; };
+  m[0] = edge(h[0], h[1], d[0], d[1]); m[n-1] = edge(h[n-2], h[n-3], d[n-2], d[n-3]);
+  return x => {
+    let k = 0; while(k < n-2 && x > xs[k+1]) k++;
+    const t = (x - xs[k])/h[k], t2 = t*t, t3 = t2*t;
+    return (2*t3-3*t2+1)*ys[k] + (t3-2*t2+t)*h[k]*m[k] + (-2*t3+3*t2)*ys[k+1] + (t3-t2)*h[k]*m[k+1];
+  };
+}
+function tipRound(v){
+  const xs = T.x, g = v.slice(0,-1).map((y,k) => y/Math.sqrt(1 - xs[k])), n = g.length;
+  g.push(g[n-1] + (g[n-1]-g[n-2])/(xs[n-1]-xs[n-2])*(1 - xs[n-1]));
+  const p = pchip(xs, g);
+  return x => p(x)*Math.sqrt(Math.max(0, 1 - x));
+}
+const cD = tipRound(T.c), pD = pchip(T.x, T.p), fC = pchip(T.x, T.f);
+
+// 致動盤
+const etaIdeal = CT => 2/(1 + Math.sqrt(1 + CT));
+const diskA = CT => 0.5*(Math.sqrt(1 + CT) - 1);
+
+// B 系列（Oosterveld & van Oossanen 1975）：C, s(J), t(P/D), u(AE/A0), v(Z)
+const KT_TAB = [[0.00880496,0,0,0,0],[-0.204554,1,0,0,0],[0.166351,0,1,0,0],[0.158114,0,2,0,0],[-0.147581,2,0,1,0],[-0.481497,1,1,1,0],[0.415437,0,2,1,0],[0.0144043,0,0,0,1],[-0.0530054,2,0,0,1],[0.0143481,0,1,0,1],[0.0606826,1,1,0,1],[-0.0125894,0,0,1,1],[0.0109689,1,0,1,1],[-0.133698,0,3,0,0],[0.00638407,0,6,0,0],[-0.00132718,2,6,0,0],[0.168496,3,0,1,0],[-0.0507214,0,0,2,0],[0.0854559,2,0,2,0],[-0.0504475,3,0,2,0],[0.010465,1,6,2,0],[-0.00648272,2,6,2,0],[-0.00841728,0,3,0,1],[0.0168424,1,3,0,1],[-0.00102296,3,3,0,1],[-0.0317791,0,3,1,1],[0.018604,1,0,2,1],[-0.00410798,0,2,2,1],[-0.000606848,0,0,0,2],[-0.0049819,1,0,0,2],[0.0025983,2,0,0,2],[-0.000560528,3,0,0,2],[-0.00163652,1,2,0,2],[-0.000328787,1,6,0,2],[0.000116502,2,6,0,2],[0.000690904,0,0,1,2],[0.00421749,0,3,1,2],[0.0000565229,3,6,1,2],[-0.00146564,0,3,2,2]];
+const KQ_TAB = [[0.00379368,0,0,0,0],[0.00886523,2,0,0,0],[-0.032241,1,1,0,0],[0.00344778,0,2,0,0],[-0.0408811,0,1,1,0],[-0.108009,1,1,1,0],[-0.0885381,2,1,1,0],[0.188561,0,2,1,0],[-0.00370871,1,0,0,1],[0.00513696,0,1,0,1],[0.0209449,1,1,0,1],[0.00474319,2,1,0,1],[-0.00723408,2,0,1,1],[0.00438388,1,1,1,1],[-0.0269403,0,2,1,1],[0.0558082,3,0,1,0],[0.0161886,0,3,1,0],[0.00318086,1,3,1,0],[0.015896,0,0,2,0],[0.0471729,1,0,2,0],[0.0196283,3,0,2,0],[-0.0502782,0,1,2,0],[-0.030055,3,1,2,0],[0.0417122,2,2,2,0],[-0.0397722,0,3,2,0],[-0.00350024,0,6,2,0],[-0.0106854,3,0,0,1],[0.00110903,3,3,0,1],[-0.000313912,0,6,0,1],[0.0035985,3,0,1,1],[-0.00142121,0,6,1,1],[-0.00383637,1,0,2,1],[0.0126803,0,2,2,1],[-0.00318278,2,3,2,1],[0.00334268,0,6,2,1],[-0.00183491,1,1,0,2],[0.000112451,3,2,0,2],[-0.0000297228,3,6,0,2],[0.000269551,1,0,1,2],[0.00083265,2,0,1,2],[0.00155334,0,2,1,2],[0.000302683,0,6,1,2],[-0.0001843,0,0,2,2],[-0.000425399,0,3,2,2],[0.0000869243,3,3,2,2],[-0.0004659,0,6,2,2],[0.0000554194,1,6,2,2]];
+const poly = (tab, J, pd, ear, z) => tab.reduce((s, [c, a, b, u, v]) => s + c*J**a*pd**b*ear**u*z**v, 0);
+const KTb = (J, pd, ear, z) => poly(KT_TAB, J, pd, ear, z), KQb = (J, pd, ear, z) => poly(KQ_TAB, J, pd, ear, z);
+function bisect(f, a, b){ let fa = f(a); for(let k=0;k<40;k++){ const m = (a+b)/2, fm = f(m); if((fm > 0) === (fa > 0)){ a = m; fa = fm; } else b = m; } return (a+b)/2; }
+const J0b = (pd, ear, z) => bisect(J => KTb(J, pd, ear, z), 0.05, 2.0);      // K_T = 0
+
+// 葉素–動量理論（DTMB 4119，Z = 3）
+const ZB = 3, YMAX = 0.06794, ALPHA0 = -0.13228, NEL = 40, NIT = 300, RELAX = 0.3;
+function element(x, J, cd = 0.008, tip = true){
+  const c = 2*cD(x), phi = Math.atan(pD(x)/(Math.PI*x)), al0 = ALPHA0*fC(x)/YMAX;
+  const Va = 2*J, wr = 2*Math.PI*x;
+  let a = 0.1, ap = 0.01, bi, W2, CL, F, dT, dQ;
+  for(let it=0; it<NIT; it++){
+    const ua = Va*(1 + a), ut = wr*(1 - ap);
+    bi = Math.atan2(ua, ut); W2 = ua*ua + ut*ut;
+    CL = 2*Math.PI*(phi - bi - al0);
+    F = tip ? Math.max(2/Math.PI*Math.acos(Math.exp(-ZB*(1 - x)/(2*x*Math.sin(bi)))), 1e-3) : 1;
+    dT = 0.5*W2*ZB*c*(CL*Math.cos(bi) - cd*Math.sin(bi));
+    dQ = 0.5*W2*ZB*c*(CL*Math.sin(bi) + cd*Math.cos(bi))*x;
+    const an = (-1 + Math.sqrt(Math.max(1 + dT/(Math.PI*x*Va*Va*F), 0.01)))/2;
+    const apn = dQ/(4*Math.PI*x**3*Va*(1 + an)*2*Math.PI*F);
+    a = (1 - RELAX)*a + RELAX*an; ap = (1 - RELAX)*ap + RELAX*apn;
+  }
+  return { x, a, ap, phi, bi, beta:Math.atan(J/(Math.PI*x)), alpha:phi - bi, CL, F, cd, dKT:dT/16, dKQ:dQ/32 };
+}
+function bemt(J, cd = 0.008, tip = true){
+  const els = []; for(let k=0;k<NEL;k++) els.push(element(0.2 + 0.8*(k + .5)/NEL, J, cd, tip));
+  const KT = els.reduce((s, e) => s + e.dKT, 0)*0.8/NEL, KQ = els.reduce((s, e) => s + e.dKQ, 0)*0.8/NEL;
+  return { KT, KQ, eta:J*KT/(2*Math.PI*KQ), els };
+}
+const J_DES = 0.833, KT_EXP = 0.146, KQ_EXP = 0.0280;
+
+/* ================= SVG 小工具 ================= */
+const svgInit = (id, W, H) => { const s = $(id); s.setAttribute("viewBox", `0 0 ${W} ${H}`); return s; };
+const L2 = (x1, y1, x2, y2, cls, ex = "") => `<line class="${cls}" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" ${ex}/>`;
+const PL = (pts, cls, ex = "") => `<polyline class="${cls}" points="${pts.map(([a,b]) => `${f1(a)},${f1(b)}`).join(" ")}" ${ex}/>`;
+const PG = (pts, cls, ex = "") => `<polygon class="${cls}" points="${pts.map(([a,b]) => `${f1(a)},${f1(b)}`).join(" ")}" ${ex}/>`;
+const TX = (x, y, s, cls = "lbl", ex = "") => `<text class="${cls}" x="${f1(x)}" y="${f1(y)}" ${ex}>${s}</text>`;
+const DOT = (x, y, r, fill, ex = "") => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${fill}" ${ex}/>`;
+const pressGroup = (sel, attr, val) => $$(sel).forEach(b => b.setAttribute("aria-pressed", String(b.dataset[attr] === String(val))));
+function ARROW(x1, y1, x2, y2, color, w = 3, head = 12){
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1);
+  if(L < 1) return "";
+  const h = Math.min(head, L*.6), bx = x2 - h*Math.cos(a), by = y2 - h*Math.sin(a), n = h*.45;
+  return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(bx)}" y2="${f1(by)}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>` +
+    PG([[x2, y2], [bx - n*Math.sin(a), by + n*Math.cos(a)], [bx + n*Math.sin(a), by - n*Math.cos(a)]], "", `fill="${color}"`);
+}
+// 座標軸：o = {W, H, m:[左,右,上,下], xr, yr, xt, yt, xl, yl, logx, xf, yf}
+function axes(o){
+  const { W, H, m, xr, yr } = o, lx = v => o.logx ? Math.log10(v) : v;
+  const X = v => m[0] + (lx(v) - lx(xr[0]))/(lx(xr[1]) - lx(xr[0]))*(W - m[0] - m[1]);
+  const Y = v => H - m[3] - (v - yr[0])/(yr[1] - yr[0])*(H - m[2] - m[3]);
+  let g = "";
+  for(const t of o.xt) g += L2(X(t), m[2], X(t), H - m[3], "gridl") + TX(X(t), H - m[3] + (o.fs ?? 24), o.xf ? o.xf(t) : t, "lbl", `text-anchor="middle"`);
+  for(const t of o.yt) g += L2(m[0], Y(t), W - m[1], Y(t), "gridl") + TX(m[0] - 8, Y(t) + 7, o.yf ? o.yf(t) : t, "lbl", `text-anchor="end"`);
+  g += L2(m[0], H - m[3], W - m[1], H - m[3], "axis") + L2(m[0], m[2], m[0], H - m[3], "axis");
+  if(o.xl) g += TX(W - m[1], H - 6, o.xl, "lblI", `text-anchor="end"`);
+  if(o.yl) g += TX(m[0] + 8, m[2] - 12, o.yl, "lblI");
+  return { X, Y, g };
+}
+const curve = (fn, a, b, n, X, Y) => { const p = []; for(let k=0;k<=n;k++){ const v = a + (b - a)*k/n, y = fn(v); if(Number.isFinite(y)) p.push([X(v), Y(y)]); } return p; };
+const tk = (a, b, s) => { const r = []; for(let v=a; v<=b + 1e-9; v+=s) r.push(+v.toFixed(6)); return r; };
+
+/* ================= Hero ================= */
+function drawHero(){
+  const J = $("#hJ").value/100, pd = 1.0, x = 0.7;
+  $("#hJOut").textContent = J.toFixed(2);
+  {
+    const W = 640, H = 420, svg = svgInit("#heroTri", W, H), ox = 60, oy = 370, Lc = Math.PI*x;   // D = 1：0.7R 圓周 = π·0.7
+    const s = 520/Lc, X = v => ox + v*s, Y = v => oy - v*s;
+    let g = L2(X(0), Y(0), X(Lc), Y(0), "axis", `stroke-width="1.5"`) + L2(X(Lc), Y(0), X(Lc), Y(1.15), "gridl");
+    g += L2(X(0), Y(0), X(Lc), Y(pd), "brS", `stroke-width="5" stroke-linecap="round"`);
+    g += L2(X(0), Y(0), X(Lc), Y(J), "flowS", `stroke-width="4" stroke-linecap="round"`);
+    g += L2(X(Lc) + 14, Y(0), X(Lc) + 14, Y(J), "flowS", `stroke-width="3"`);
+    if(pd > J) g += L2(X(Lc) + 14, Y(J), X(Lc) + 14, Y(pd), "posS", `stroke-width="3"`);
+    g += TX(X(Lc/2), Y(0) + 34, "轉一圈的弧長 2πr", "lbl", `text-anchor="middle"`);
+    g += TX(X(Lc) + 4, Y(pd) - 14, "P", "lblI", `text-anchor="end"`);
+    g += TX(X(Lc) - 10, Y(J/2) + 8, "J D", "lblI", `text-anchor="end" style="fill:var(--flow)"`);
+    if(pd - J > .08) g += TX(X(Lc) - 10, Y((pd + J)/2) + 8, "滑脫", "lbl", `text-anchor="end" style="fill:var(--pos)"`);
+    const arc = (ang, r, cls) => { const p = []; for(let k=0;k<=20;k++){ const t = ang*k/20; p.push([X(0) + r*Math.cos(t), Y(0) - r*Math.sin(t)]); } return PL(p, cls, `stroke-width="2"`); };
+    const phi = Math.atan(pd/Lc), bet = Math.atan(J/Lc);
+    g += arc(phi, 120, "brL") + arc(bet, 170, "flowS");
+    g += TX(X(0) + 128*Math.cos(phi/2) + 6, Y(0) - 128*Math.sin(phi/2) - 4, "φ", "lblI");
+    g += TX(X(0) + 178*Math.cos(bet/2) + 6, Y(0) - 178*Math.sin(bet/2) + 10, "β", "lblI", `style="fill:var(--flow)"`);
+    svg.innerHTML = g;
+  }
+  const ear = .70, z = 4, J0 = J0b(pd, ear, z);
+  {
+    const W = 640, H = 420, svg = svgInit("#heroOW", W, H);
+    const A = axes({ W, H, m:[70, 24, 50, 60], xr:[0, 1.1], yr:[0, 1], xt:tk(0, 1.0, .2), yt:tk(0, 1, .2), xf:v => v.toFixed(1), yf:v => v.toFixed(1), xl:"J" });
+    let g = A.g;
+    g += PL(curve(j => KTb(j, pd, ear, z), 0, J0, 80, A.X, A.Y), "brL", `stroke-width="3.5"`);
+    g += PL(curve(j => 10*KQb(j, pd, ear, z), 0, J0 + .03, 80, A.X, A.Y), "negS", `stroke-width="3" stroke-dasharray="9 6"`);
+    g += PL(curve(j => j*KTb(j, pd, ear, z)/(2*Math.PI*KQb(j, pd, ear, z)), 0.01, J0 - .005, 80, A.X, A.Y), "poleS", `stroke-width="4"`);
+    g += L2(A.X(J), A.Y(0), A.X(J), A.Y(1), "inkS", `stroke-width="1.5" stroke-dasharray="4 4"`);
+    g += TX(A.X(.06), A.Y(KTb(.06, pd, ear, z)) - 12, "K<tspan baseline-shift='sub' font-size='70%'>T</tspan>", "lblI");
+    g += TX(A.X(.06), A.Y(10*KQb(.06, pd, ear, z)) - 12, "10K<tspan baseline-shift='sub' font-size='70%'>Q</tspan>", "lblI", `style="fill:var(--neg)"`);
+    g += TX(A.X(.62), A.Y(.62*KTb(.62, pd, ear, z)/(2*Math.PI*KQb(.62, pd, ear, z))) - 14, "η<tspan baseline-shift='sub' font-size='70%'>0</tspan>", "lblI", `style="fill:var(--pole)"`);
+    svg.innerHTML = g;
+  }
+  const kt = KTb(J, pd, ear, z), kq = KQb(J, pd, ear, z);
+  $("#heroRead").innerHTML =
+    `<div>滑脫比 <strong>s = 1 − J/(P/D) = ${f2(1 - J/pd)}</strong></div>
+     <div>B4-70：<strong>K<sub>T</sub> = ${f3(kt)}</strong>，<strong>10K<sub>Q</sub> = ${f3(10*kq)}</strong>，<strong>η<sub>0</sub> = ${kt > 0 ? f3(J*kt/(2*Math.PI*kq)) : "—"}</strong></div>
+     <div>推力在 <strong>J = ${f2(J0)}</strong> 才降到零，比 <span class="m">P/D</span> 還大：有拱度的剖面在幾何攻角為零時仍有升力。</div>`;
+}
+$("#hJ").addEventListener("input", drawHero);
+drawHero();
+
+/* ================= 2.1 致動盤 ================= */
+const CTof = v => 10**(-1 + 2*v/100), vOfCT = c => Math.round((Math.log10(c) + 1)*50);
+function drawS1(){
+  const CT = CTof(+$("#ct1").value), a = diskA(CT), eta = etaIdeal(CT);
+  $("#ct1Out").textContent = CT < 1 ? f2(CT) : f1(CT);
+  const uC = x => 1 + a*(1 + x/Math.hypot(x, 1));                    // 中心線速度 / V_A
+  const rT = x => Math.sqrt((1 + a)/uC(x));                           // 流管半徑 / R
+  {
+    const W = 760, H = 330, svg = svgInit("#tube1", W, H), xr = [-3, 3.4], cy = 170, s = 100;
+    const X = v => 40 + (v - xr[0])/(xr[1] - xr[0])*(W - 80), Y = r => cy - r*s;
+    let g = L2(X(xr[0]), cy, X(xr[1]), cy, "dash");
+    for(const fr of [.25, .5, .75, 1]){
+      const k = Math.sqrt(fr), up = [], dn = [];
+      for(let i=0;i<=120;i++){ const x = xr[0] + (xr[1] - xr[0])*i/120; up.push([X(x), Y(k*rT(x))]); dn.push([X(x), Y(-k*rT(x))]); }
+      const cls = fr === 1 ? "flowS" : "ghost", w = fr === 1 ? 3 : 1.5;
+      g += PL(up, cls, `stroke-width="${w}"`) + PL(dn, cls, `stroke-width="${w}"`);
+    }
+    g += `<rect x="${f1(X(0) - 5)}" y="${f1(Y(1))}" width="10" height="${f1(2*s)}" class="brF" rx="2"/>`;
+    const arrowAt = (x, label, anchor) => {
+      const u = uC(x), len = 46*u, r = rT(x);
+      let h = "";
+      for(const yy of [.45, -.45]) h += ARROW(X(x) - len/2, Y(yy*r), X(x) + len/2, Y(yy*r), "var(--flow)", 3, 11);
+      return h + TX(X(x), Y(-r) + 30, label, "lblI", `text-anchor="${anchor}"`);
+    };
+    g += arrowAt(-2.6, "V<tspan baseline-shift='sub' font-size='70%'>A</tspan>", "middle");
+    g += arrowAt(0.55, "V<tspan baseline-shift='sub' font-size='70%'>A</tspan>(1 + a)", "start");
+    g += arrowAt(3.0, "V<tspan baseline-shift='sub' font-size='70%'>A</tspan>(1 + 2a)", "middle");
+    g += TX(X(0), Y(1) - 10, "致動盤", "lbl", `text-anchor="middle"`);
+    g += TX(X(3.0), Y(rT(3)) - 10, `${f3(rT(1e6))} R`, "lblK", `text-anchor="middle"`);
+    svg.innerHTML = g;
+  }
+  {
+    const W = 640, H = 560, svg = svgInit("#vp1", W, H);
+    const vmax = Math.max(1.6, Math.ceil((1 + 2*a)*5)/5 + .2);
+    const A = axes({ W, H:270, m:[78, 20, 46, 34], xr:[-3, 3], yr:[1, vmax], xt:tk(-3, 3, 1), yt:[1, (1 + vmax)/2, vmax].map(v => +v.toFixed(1)), yl:"V / V<tspan baseline-shift='sub' font-size='70%'>A</tspan>", xf:() => "", yf:v => v.toFixed(1) });
+    let g = A.g + PL(curve(uC, -3, 3, 120, A.X, A.Y), "flowS", `stroke-width="3.5"`);
+    const cp = x => 1 - uC(x)**2 + (x > 0 ? CT : 0);
+    const lo = 1 - (1 + a)**2, hi = lo + CT, pad = .1*(hi - lo);
+    const B = axes({ W, H, m:[78, 20, 330, 56], xr:[-3, 3], yr:[lo - pad, hi + pad], xt:tk(-3, 3, 1), yt:[lo, 0, hi], yf:v => v.toFixed(1), xl:"x / R", yl:"(p − p<tspan baseline-shift='sub' font-size='70%'>∞</tspan>) / ½ρV<tspan baseline-shift='sub' font-size='70%'>A</tspan>²" });
+    g += B.g + PL(curve(cp, -3, -1e-6, 80, B.X, B.Y), "posS", `stroke-width="3.5"`) + PL(curve(cp, 1e-6, 3, 80, B.X, B.Y), "posS", `stroke-width="3.5"`);
+    g += L2(B.X(0), B.Y(lo), B.X(0), B.Y(hi), "posS", `stroke-width="2" stroke-dasharray="5 4"`);
+    g += TX(B.X(0) + 10, B.Y((lo + hi)/2) + 8, `跳升 ${CT < 1 ? f2(CT) : f1(CT)}`, "lbl");
+    svg.innerHTML = g;
+  }
+  {
+    const W = 640, H = 560, svg = svgInit("#eta1", W, H);
+    const A = axes({ W, H, m:[78, 24, 50, 60], xr:[.1, 10], yr:[.4, 1], logx:true, xt:[.1, .2, .5, 1, 2, 5, 10], yt:tk(.4, 1, .1), yf:v => v.toFixed(1), xl:"C_T" });
+    let g = A.g;
+    const pts = []; for(let k=0;k<=100;k++){ const c = 10**(-1 + 2*k/100); pts.push([A.X(c), A.Y(etaIdeal(c))]); }
+    g += PL(pts, "poleS", `stroke-width="4"`) + DOT(A.X(CT), A.Y(eta), 9, "var(--pole)");
+    g += TX(A.X(CT) + (CT > 3 ? -14 : 14), A.Y(eta) - 16, `η<tspan baseline-shift='sub' font-size='70%'>i</tspan> = ${f3(eta)}`, "lblK", CT > 3 ? `text-anchor="end"` : "");
+    svg.innerHTML = g.replace(">C_T<", ">C<tspan baseline-shift='sub' font-size='70%'>T</tspan><");
+  }
+  $("#s1Read").innerHTML =
+    `<div>誘導因子 <strong>a = ${f3(a)}</strong>：盤面 <strong>${f3(1 + a)} V<sub>A</sub></strong>，遠方尾流 <strong>${f3(1 + 2*a)} V<sub>A</sub></strong></div>
+     <div>尾流半徑收縮到 <strong>${f3(Math.sqrt((1 + a)/(1 + 2*a)))} R</strong></div>
+     <div>理想效率 <strong>η<sub>i</sub> = ${f3(eta)}</strong>：輸入功率的 <strong>${(100*(1 - eta)).toFixed(1)}%</strong> 留在尾流的動能裡</div>`;
+}
+$("#ct1").addEventListener("input", drawS1);
+$$("[data-ct1]").forEach(b => b.addEventListener("click", () => { $("#ct1").value = vOfCT(+b.dataset.ct1); drawS1(); }));
+drawS1();
+
+/* ================= 2.2 速度三角形 ================= */
+function drawS2(){
+  const x = $("#x2").value/100, J = $("#j2").value/100, cd = $("#cd2").value/1000;
+  $("#x2Out").textContent = x.toFixed(2); $("#j2Out").textContent = J.toFixed(2); $("#cd2Out").textContent = cd.toFixed(3);
+  const e = element(x, J, cd, true), Va = 2*J, wr = 2*Math.PI*x;
+  {
+    const W = 760, H = 400, svg = svgInit("#tri2", W, H), s = 98, ox = 50, oy = 360;
+    const P = (t, ax) => [ox + t*s, oy - ax*s];
+    const [Ax, Ay] = P(wr, 0), [Bx, By] = P(wr, Va), [Cx, Cy] = P(wr*(1 - e.ap), Va*(1 + e.a));
+    let g = "";
+    // 弦線（螺距角）與剖面
+    const Lr = 7.2, cph = Math.cos(e.phi), sph = Math.sin(e.phi);
+    g += L2(ox, oy, ox + Lr*s*cph, oy - Lr*s*sph, "brS", `stroke-width="2" stroke-dasharray="10 6"`);
+    const fl = [], ch = 150, th = .09;
+    for(let k=0;k<=24;k++){ const u = k/24, yt = th*ch*2.4*Math.sqrt(u)*(1 - u)*(1 + .4*u); fl.push([u*ch, yt]); }
+    for(let k=24;k>=0;k--){ const u = k/24, yt = th*ch*.7*Math.sqrt(u)*(1 - u); fl.push([u*ch, -yt]); }
+    g += PG(fl.map(([u, v]) => [ox + 20*cph + u*cph - v*sph, oy - 20*sph - u*sph - v*cph]), "brF", `stroke="var(--bronzeD)" stroke-width="1.2"`);
+    // 速度向量
+    g += ARROW(ox, oy, Ax, Ay, "var(--ink2)", 3) + ARROW(Ax, Ay, Bx, By, "var(--ink2)", 3);
+    g += L2(ox, oy, Bx, By, "ink2S", `stroke-width="1.5" stroke-dasharray="5 5"`);
+    g += ARROW(Bx, By, Bx, Cy, "var(--pole)", 3, 10) + ARROW(Bx, Cy, Cx, Cy, "var(--pole)", 3, 10);
+    g += ARROW(ox, oy, Cx, Cy, "var(--flow)", 4.5, 14);
+    // 角度
+    const arc = (ang, r, col) => { const p = []; for(let k=0;k<=24;k++){ const t = ang*k/24; p.push([ox + r*Math.cos(t), oy - r*Math.sin(t)]); } return PL(p, "", `fill="none" stroke="${col}" stroke-width="2"`); };
+    g += arc(e.beta, 250, "var(--ink2)") + arc(e.bi, 330, "var(--flow)") + arc(e.phi, 410, "var(--brLine)");
+    const lab = (ang, r, s1, col) => TX(ox + r*Math.cos(ang) + 8, oy - r*Math.sin(ang) + 6, s1, "lblI", `style="fill:${col}"`);
+    g += lab(e.beta*.5, 255, "β", "var(--ink2)") + lab(e.bi*.6, 335, "β<tspan baseline-shift='sub' font-size='70%'>i</tspan>", "var(--flow)") + lab(e.phi*.8, 415, "φ", "var(--brLine)");
+    g += TX((ox + Ax)/2, oy + 30, "ωr", "lblI", `text-anchor="middle"`);
+    g += TX(Ax + 10, (Ay + By)/2 + 6, "V<tspan baseline-shift='sub' font-size='70%'>A</tspan>", "lblI");
+    g += TX(Bx + 10, (By + Cy)/2 + 6, "aV<tspan baseline-shift='sub' font-size='70%'>A</tspan>", "lblI", `style="fill:var(--pole)"`);
+    g += TX((Bx + Cx)/2, Cy - 12, "a′ωr", "lblI", `text-anchor="middle" style="fill:var(--pole)"`);
+    g += TX((ox + Cx)/2 - 10, (oy + Cy)/2 - 14, "W", "lblI", `text-anchor="end" style="fill:var(--flow)"`);
+    svg.innerHTML = g;
+  }
+  const CL = e.CL, Ld = 1, Dd = cd/Math.max(CL, 1e-6);
+  {
+    const W = 640, H = 560, svg = svgInit("#force2", W, H), ox = 400, oy = 400, s = 300, bi = e.bi;
+    const pt = (t, ax) => [ox + t*s, oy - ax*s];
+    let g = L2(ox - 330*Math.cos(bi), oy + 330*Math.sin(bi), ox + 200*Math.cos(bi), oy - 200*Math.sin(bi), "flowS", `stroke-width="1.6" stroke-dasharray="6 5"`);
+    g += TX(ox + 200*Math.cos(bi) - 4, oy - 200*Math.sin(bi) - 12, "W 方向", "lbl", `text-anchor="end" style="fill:var(--flow)"`);
+    const L = [-Math.sin(bi)*Ld, Math.cos(bi)*Ld], D = [-Math.cos(bi)*Dd*5, -Math.sin(bi)*Dd*5];
+    const Rv = [L[0] + D[0], L[1] + D[1]];
+    const tA = Ld*Math.cos(bi) - Dd*Math.sin(bi), tQ = Ld*Math.sin(bi) + Dd*Math.cos(bi);
+    if(CL > 0){
+      g += ARROW(ox, oy, ...pt(...L), "var(--flow)", 4) + ARROW(ox, oy, ...pt(...D), "var(--pos)", 4);
+      g += ARROW(ox, oy, ox, oy - tA*s, "var(--ink)", 3) + ARROW(ox, oy, ox - tQ*s, oy, "var(--ink)", 3);
+      g += L2(...pt(L[0] - Math.cos(bi)*Dd*5, L[1] - Math.sin(bi)*Dd*5), ox, oy - tA*s, "ghost", `stroke-dasharray="4 4"`);
+      g += TX(...pt(L[0] - .02, L[1] + .04), "dL", "lblI", `text-anchor="end" style="fill:var(--flow)"`);
+      { const [dx, dy] = pt(...D); g += TX(dx + 16, dy + 30, "dD ×5", "lblI", `style="fill:var(--pos)"`); }
+      g += TX(ox + 12, oy - tA*s + 10, "dT", "lblI");
+      g += TX(ox - tQ*s/2, oy - 14, "dQ / r", "lblI", `text-anchor="middle"`);
+    } else g += TX(W/2, H/2, "這個半徑的攻角太小，升力 ≤ 0", "lblK", `text-anchor="middle"`);
+    svg.innerHTML = g;
+  }
+  const ea = 1/(1 + e.a), et = 1 - e.ap, gam = Math.atan(cd/Math.max(CL, 1e-6)), ev = CL > 0 ? Math.tan(e.bi)/Math.tan(e.bi + gam) : 0;
+  {
+    const W = 640, H = 560, svg = svgInit("#eff2", W, H);
+    const A = axes({ W, H, m:[70, 20, 40, 70], xr:[0, 4], yr:[0, 1], xt:[], yt:tk(0, 1, .2), yf:v => v.toFixed(1) });
+    const bars = [["軸向", ea, "var(--flow)"], ["旋轉", et, "var(--pole)"], ["黏性", ev, "var(--pos)"], ["剖面", ea*et*ev, "var(--bronze)"]];
+    let g = A.g;
+    bars.forEach(([n, v, col], k) => {
+      const x0 = A.X(k + .18), x1 = A.X(k + .82);
+      g += `<rect x="${f1(x0)}" y="${f1(A.Y(Math.max(v, 0)))}" width="${f1(x1 - x0)}" height="${f1(A.Y(0) - A.Y(Math.max(v, 0)))}" fill="${col}" opacity="${k === 3 ? 1 : .8}"/>`;
+      g += TX((x0 + x1)/2, A.Y(Math.max(v, 0)) - 10, f3(v), "lblK", `text-anchor="middle"`);
+      g += TX((x0 + x1)/2, H - 70 + 32, n, "lbl", `text-anchor="middle"`);
+    });
+    svg.innerHTML = g;
+  }
+  $("#s2Read").innerHTML =
+    `<div>進角 <strong>β = ${f2(deg(e.beta))}°</strong>，誘導進角 <strong>β<sub>i</sub> = ${f2(deg(e.bi))}°</strong>，螺距角 <strong>φ = ${f2(deg(e.phi))}°</strong></div>
+     <div>攻角 <strong>α = ${f2(deg(e.alpha))}°</strong>（零升力角 ${f2(deg(ALPHA0*fC(x)/YMAX))}°），<strong>C<sub>L</sub> = ${f3(CL)}</strong></div>
+     <div>誘導因子 <strong>a = ${f3(e.a)}</strong>，<strong>a′ = ${f3(e.ap)}</strong>；葉尖修正 <strong>F = ${f3(e.F)}</strong></div>
+     <div>剖面效率 <strong>${f3(ea*et*ev)}</strong> ＝ ${f3(ea)} × ${f3(et)} × ${f3(ev)}</div>`;
+}
+["#x2", "#j2", "#cd2"].forEach(id => $(id).addEventListener("input", drawS2));
+drawS2();
+
+/* ================= 2.3 葉素–動量理論 ================= */
+const OWCACHE = {};
+function owCurve(cd, tip){
+  const key = `${cd}|${tip}`;
+  if(!OWCACHE[key]){ const r = []; for(let J=0.4; J<=1.1501; J+=0.025) r.push([J, bemt(J, cd, tip)]); OWCACHE[key] = r; }
+  return OWCACHE[key];
+}
+function drawS3(){
+  const J = $("#j3").value/100, cd = $("#cd3").value/1000, tip = $("#tip3").getAttribute("aria-pressed") === "true";
+  $("#j3Out").textContent = J.toFixed(2); $("#cd3Out").textContent = cd.toFixed(3);
+  const R = bemt(J, cd, tip), R0 = bemt(J, cd, false);
+  {
+    const W = 640, H = 560, svg = svgInit("#rad3", W, H);
+    const ymax = Math.max(.6, Math.ceil(Math.max(...R0.els.map(e => Math.max(e.dKT, 10*e.dKQ)))*5)/5);
+    const A = axes({ W, H, m:[78, 20, 50, 60], xr:[.2, 1], yr:[0, ymax], xt:tk(.2, 1, .2), yt:tk(0, ymax, ymax > 1 ? .4 : .2), xf:v => v.toFixed(1), yf:v => v.toFixed(1), xl:"r / R" });
+    const line = (els, k, sc) => [[A.X(.2), A.Y(0)], ...els.map(e => [A.X(e.x), A.Y(Math.max(0, e[k]*sc))]), [A.X(1), A.Y(0)]];
+    let g = A.g;
+    if(tip){ g += PL(line(R0.els, "dKT", 1), "brL", `stroke-width="2" stroke-dasharray="7 5" opacity=".7"`) + PL(line(R0.els, "dKQ", 10), "negS", `stroke-width="2" stroke-dasharray="7 5" opacity=".7"`); }
+    g += PL(line(R.els, "dKT", 1), "brL", `stroke-width="4"`) + PL(line(R.els, "dKQ", 10), "negS", `stroke-width="3.5"`);
+    g += TX(A.X(.22), A.Y(ymax) - 12, "dK<tspan baseline-shift='sub' font-size='70%'>T</tspan>/dx、10 dK<tspan baseline-shift='sub' font-size='70%'>Q</tspan>/dx", "lblI");
+    svg.innerHTML = g;
+  }
+  {
+    const W = 640, H = 560, svg = svgInit("#ind3", W, H);
+    const A = axes({ W, H, m:[78, 20, 50, 60], xr:[.2, 1], yr:[0, 1.1], xt:tk(.2, 1, .2), yt:tk(0, 1, .2), xf:v => v.toFixed(1), yf:v => v.toFixed(1), xl:"r / R" });
+    const L = k => R.els.map(e => [A.X(e.x), A.Y(e[k])]);
+    let g = A.g + PL(L("F"), "ink2S", `stroke-width="3"`) + PL(L("a"), "poleS", `stroke-width="4"`) + PL(L("ap"), "poleS", `stroke-width="3" stroke-dasharray="8 6"`);
+    const last = R.els[NEL - 6];
+    g += TX(A.X(.25), A.Y(R.els[2].F) + 30, "F", "lblI", `style="fill:var(--ink2)"`);
+    const mid = R.els[NEL/2];
+    g += TX(A.X(mid.x), A.Y(mid.a) - 16, "a", "lblI", `style="fill:var(--pole)"`);
+    g += TX(A.X(last.x), A.Y(last.ap) + 34, "a′", "lblI", `style="fill:var(--pole)"`);
+    svg.innerHTML = g;
+  }
+  {
+    const W = 760, H = 380, svg = svgInit("#ow3", W, H), ow = owCurve(cd, tip);
+    const A = axes({ W, H, m:[60, 20, 36, 44], xr:[.4, 1.15], yr:[0, 1], xt:tk(.4, 1.1, .1), yt:tk(0, 1, .2), xf:v => v.toFixed(1), yf:v => v.toFixed(1), xl:"J", fs:20 });
+    let g = A.g;
+    g += PL(ow.map(([j, r]) => [A.X(j), A.Y(r.KT)]), "brL", `stroke-width="3.5"`);
+    g += PL(ow.map(([j, r]) => [A.X(j), A.Y(10*r.KQ)]), "negS", `stroke-width="3" stroke-dasharray="9 6"`);
+    g += PL(ow.filter(([j, r]) => r.KT > 0).map(([j, r]) => [A.X(j), A.Y(r.eta)]), "poleS", `stroke-width="4"`);
+    const ex = (v, col) => `<circle cx="${f1(A.X(J_DES))}" cy="${f1(A.Y(v))}" r="8" fill="var(--panel)" stroke="${col}" stroke-width="3"/>`;
+    g += ex(KT_EXP, "var(--brLine)") + ex(10*KQ_EXP, "var(--neg)") + ex(J_DES*KT_EXP/(2*Math.PI*KQ_EXP), "var(--pole)");
+    g += L2(A.X(J), A.Y(0), A.X(J), A.Y(1), "inkS", `stroke-width="1.5" stroke-dasharray="4 4"`);
+    g += TX(A.X(.42), A.Y(ow[0][1].KT) - 10, "K<tspan baseline-shift='sub' font-size='70%'>T</tspan>", "lblI");
+    g += TX(A.X(.42), A.Y(10*ow[0][1].KQ) - 10, "10K<tspan baseline-shift='sub' font-size='70%'>Q</tspan>", "lblI", `style="fill:var(--neg)"`);
+    const o6 = ow.find(([j]) => j > .6)[1];
+    g += TX(A.X(.6), A.Y(o6.eta) - 14, "η<tspan baseline-shift='sub' font-size='70%'>0</tspan>", "lblI", `style="fill:var(--pole)"`);
+    g += TX(A.X(J_DES) + 12, A.Y(KT_EXP) + 22, "試驗", "lbl");
+    svg.innerHTML = g;
+  }
+  const D = bemt(J_DES, cd, tip), etaExp = J_DES*KT_EXP/(2*Math.PI*KQ_EXP);
+  $("#s3Read").innerHTML =
+    `<div>J = ${J.toFixed(2)}：<strong>K<sub>T</sub> = ${f3(R.KT)}</strong>，<strong>10K<sub>Q</sub> = ${f3(10*R.KQ)}</strong>，<strong>η<sub>0</sub> = ${R.KT > 0 ? f3(R.eta) : "—"}</strong></div>
+     <div>設計點 J = 0.833：K<sub>T</sub> <strong>${f3(D.KT)}</strong>（試驗 0.146，<strong>${D.KT >= KT_EXP ? "+" : ""}${(100*(D.KT/KT_EXP - 1)).toFixed(0)}%</strong>），η<sub>0</sub> <strong>${f3(D.eta)}</strong>（試驗 ${f3(etaExp)}）</div>`;
+}
+["#j3", "#cd3"].forEach(id => $(id).addEventListener("input", drawS3));
+$("#tip3").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); drawS3(); });
+drawS3();
+
+/* ================= 2.4 B 系列 ================= */
+let Z4 = 5;
+// 各葉數實際試驗過的展開面積比範圍（B2-30 只有一支）
+const BRANGE = { 2:[.30, .30], 3:[.35, .80], 4:[.40, 1.00], 5:[.45, 1.05], 6:[.50, .80], 7:[.55, .85] };
+function designPoint(c, pd, ear, z){
+  const J0 = J0b(pd, ear, z), J = bisect(j => KTb(j, pd, ear, z) - c*j*j, 0.01, J0);
+  return { J, eta:J*KTb(J, pd, ear, z)/(2*Math.PI*KQb(J, pd, ear, z)) };
+}
+function bestPD(c, ear, z){       // 粗掃再用黃金分割細找（η 對 P/D 是單峰）
+  let k0 = 0, e0 = -1;
+  for(let k=0;k<=9;k++){ const e = designPoint(c, .5 + .1*k, ear, z).eta; if(e > e0){ e0 = e; k0 = k; } }
+  let a = Math.max(.5, .5 + .1*(k0 - 1)), b = Math.min(1.4, .5 + .1*(k0 + 1)), g = (Math.sqrt(5) - 1)/2;
+  for(let it=0; it<14; it++){ const p = b - g*(b - a), q = a + g*(b - a);
+    if(designPoint(c, p, ear, z).eta > designPoint(c, q, ear, z).eta) b = q; else a = p; }
+  const pd = (a + b)/2; return { pd, ...designPoint(c, pd, ear, z) };
+}
+const CMPCACHE = {};
+function drawS4(){
+  const ear = $("#ear4").value/100, pdS = $("#pd4").value/100, c = $("#c4").value/100;
+  $("#ear4Out").textContent = ear.toFixed(2); $("#pd4Out").textContent = pdS.toFixed(2); $("#c4Out").textContent = c.toFixed(2);
+  const z = Z4;
+  {
+    const W = 760, H = 420, svg = svgInit("#ow4", W, H);
+    const A = axes({ W, H, m:[60, 20, 36, 44], xr:[0, 1.6], yr:[0, 1], xt:tk(0, 1.6, .2), yt:tk(0, 1, .2), xf:v => v.toFixed(1), yf:v => v.toFixed(1), xl:"J", fs:20 });
+    let g = A.g;
+    for(const pd of [.6, .8, 1.0, 1.2, 1.4]){
+      const J0 = J0b(pd, ear, z);
+      g += PL(curve(j => KTb(j, pd, ear, z), 0, J0, 60, A.X, A.Y), "ink2S", `stroke-width="1.6" opacity=".7"`);
+      const d = designPoint(c, pd, ear, z);
+      g += DOT(A.X(d.J), A.Y(KTb(d.J, pd, ear, z)), 6, "var(--flow)");
+    }
+    const J0 = J0b(pdS, ear, z);
+    g += PL(curve(j => KTb(j, pdS, ear, z), 0, J0, 80, A.X, A.Y), "poleS", `stroke-width="3.5"`);
+    g += PL(curve(j => 10*KQb(j, pdS, ear, z), 0, Math.min(1.6, J0 + .05), 80, A.X, A.Y), "poleS", `stroke-width="2.5" stroke-dasharray="8 6"`);
+    g += PL(curve(j => j*KTb(j, pdS, ear, z)/(2*Math.PI*KQb(j, pdS, ear, z)), .02, J0 - .005, 80, A.X, A.Y), "poleS", `stroke-width="5" opacity=".85"`);
+    g += PL(curve(j => c*j*j, 0, Math.min(1.6, Math.sqrt(1/c)), 80, A.X, A.Y), "flowS", `stroke-width="3"`);
+    const dS = designPoint(c, pdS, ear, z);
+    g += DOT(A.X(dS.J), A.Y(KTb(dS.J, pdS, ear, z)), 8, "var(--pole)") + DOT(A.X(dS.J), A.Y(dS.eta), 8, "var(--pole)");
+    g += L2(A.X(dS.J), A.Y(KTb(dS.J, pdS, ear, z)), A.X(dS.J), A.Y(dS.eta), "poleS", `stroke-dasharray="3 4"`);
+    const jl = Math.min(1.55, Math.sqrt(.95/c)*.96);
+    g += TX(A.X(jl) - 8, A.Y(c*jl*jl), "K<tspan baseline-shift='sub' font-size='70%'>T</tspan> = cJ²", "lblI", `text-anchor="end" style="fill:var(--flow)"`);
+    g += TX(A.X(J0*.3) - 14, A.Y(J0*.3*KTb(J0*.3, pdS, ear, z)/(2*Math.PI*KQb(J0*.3, pdS, ear, z))) - 4, "η<tspan baseline-shift='sub' font-size='70%'>0</tspan>", "lblI", `style="fill:var(--pole)"`);
+    svg.innerHTML = g;
+  }
+  const pds = tk(.5, 1.4, .025), etas = pds.map(pd => designPoint(c, pd, ear, z).eta), best = bestPD(c, ear, z);
+  {
+    const W = 640, H = 560, svg = svgInit("#opt4", W, H);
+    const lo = Math.floor(Math.min(...etas)*20)/20, hi = Math.ceil(best.eta*20)/20 + .05;
+    const A = axes({ W, H, m:[84, 24, 50, 60], xr:[.5, 1.4], yr:[lo, hi], xt:tk(.6, 1.4, .2), yt:tk(lo, hi, (hi - lo) > .3 ? .1 : .05), xf:v => v.toFixed(1), yf:v => v.toFixed(2), xl:"P/D" });
+    let g = A.g + PL(pds.map((p, k) => [A.X(p), A.Y(etas[k])]), "poleS", `stroke-width="4"`);
+    g += DOT(A.X(best.pd), A.Y(best.eta), 9, "var(--flow)") + DOT(A.X(pdS), A.Y(designPoint(c, pdS, ear, z).eta), 7, "var(--pole)");
+    g += TX(A.X(best.pd), A.Y(best.eta) - 18, `最佳 ${f2(best.pd)}`, "lblK", `text-anchor="middle"`);
+    g += TX(A.X(.52), A.Y(hi) - 12, "η<tspan baseline-shift='sub' font-size='70%'>0</tspan>", "lblI");
+    svg.innerHTML = g;
+  }
+  {
+    const W = 640, H = 560, svg = svgInit("#cmp4", W, H), zs = [2, 3, 4, 5, 6, 7];
+    const data = CMPCACHE[c] ??= zs.map(zz => { const [a, b] = BRANGE[zz], n = Math.round((b - a)/.05);
+      return Array.from({length:n + 1}, (_, i) => { const e = n ? a + (b - a)*i/n : a; return [e, bestPD(c, e, zz).eta]; }); });
+    const all = data.flat().map(p => p[1]), lo = Math.floor(Math.min(...all)*20)/20, hi = Math.ceil(Math.max(...all)*20)/20 + .02;
+    const A = axes({ W, H, m:[84, 80, 50, 60], xr:[.3, 1.05], yr:[lo, hi], xt:[.3, .5, .7, .9], yt:tk(lo, hi, .05), xf:v => v.toFixed(1), yf:v => v.toFixed(2), xl:"A_E/A_0" });
+    let g = A.g;
+    const labs = data.map((row, k) => ({ k, x:A.X(row[row.length - 1][0]) + 10, y:A.Y(row[row.length - 1][1]) + 7 })).sort((p, q) => p.y - q.y);
+    for(let i=1;i<labs.length;i++) if(Math.abs(labs[i].x - labs[i-1].x) < 60 && labs[i].y - labs[i-1].y < 24) labs[i].y = labs[i-1].y + 24;
+    labs.forEach(({ k, x, y }) => g += TX(x, y, `Z=${zs[k]}`, zs[k] === z ? "lblK" : "lbl"));
+    data.forEach((row, k) => {
+      const on = zs[k] === z, last = row[row.length - 1];
+      if(row.length > 1) g += PL(row.map(([e, v]) => [A.X(e), A.Y(v)]), on ? "poleS" : "ink2S", `stroke-width="${on ? 4 : 2}" opacity="${on ? 1 : .7}"`);
+      else g += DOT(A.X(last[0]), A.Y(last[1]), on ? 7 : 5, on ? "var(--pole)" : "var(--ink2)");
+    });
+    const [ra, rb] = BRANGE[z];
+    if(ear >= ra - 1e-9 && ear <= rb + 1e-9) g += DOT(A.X(ear), A.Y(best.eta), 8, "var(--flow)");
+    svg.innerHTML = g.replace(">A_E/A_0<", ">A<tspan baseline-shift='sub' font-size='70%'>E</tspan>/A<tspan baseline-shift='sub' font-size='70%'>0</tspan><");
+  }
+  const dS = designPoint(c, pdS, ear, z);
+  $("#s4Read").innerHTML =
+    `<div>B${z}-${Math.round(ear*100)}，<span class="m">P/D</span> = ${f2(pdS)}：設計點 <strong>J = ${f3(dS.J)}</strong>，<strong>K<sub>T</sub> = ${f3(KTb(dS.J, pdS, ear, z))}</strong>，<strong>η<sub>0</sub> = ${f3(dS.eta)}</strong></div>
+     <div>最佳螺距 <strong>P/D = ${f2(best.pd)}</strong>，<strong>J = ${f3(best.J)}</strong>，<strong>η<sub>0</sub> = ${f3(best.eta)}</strong></div>
+     <div>轉速由 <span class="m">n = V<sub>A</sub>/(J D)</span> 求得。</div>
+     ${ear < BRANGE[z][0] - 1e-9 || ear > BRANGE[z][1] + 1e-9 ? `<div style="color:var(--pos)">注意：${z} 葉的 B 系列只試驗到 A<sub>E</sub>/A<sub>0</sub> = ${BRANGE[z][0].toFixed(2)}–${BRANGE[z][1].toFixed(2)}，目前是外插。</div>` : ""}`;
+}
+$$("[data-z4]").forEach(b => b.addEventListener("click", () => { Z4 = +b.dataset.z4; pressGroup("[data-z4]", "z4", Z4); drawS4(); }));
+["#ear4", "#pd4", "#c4"].forEach(id => $(id).addEventListener("input", drawS4));
+drawS4();
+</script>
+<!-- embed-mode: ?embed=<節 id> 時只顯示那一節，供書頁以 iframe 嵌入 -->
+<style>
+html.embed body{ background:var(--paper); }
+html.embed body > :not(.embed-target):not(script):not(style){ display:none !important; }
+html.embed .embed-target{ display:block; max-width:none; margin:0; padding:.9rem 1rem 1rem; border-top:0; }
+html.embed .embed-target .text{ position:static; }
+html.embed .embed-target .text > :is(h2,p,.eq,.eqs){ display:none; }
+html.embed header.embed-target > div:first-child > :is(h1,p){ display:none; }
+html.embed .embed-target .controls{ margin:0 0 1rem; grid-template-columns:repeat(auto-fill,minmax(15rem,1fr)); column-gap:1.5rem; }
+html.embed .embed-target .stage{ margin-top:.5rem; }
+</style>
+<script>
+(function(){
+  var id = new URLSearchParams(location.search).get("embed");
+  if (!id) return;
+  var target = id === "hero" ? document.querySelector("header.hero") : document.getElementById(id);
+  if (!target) return;
+  target.classList.add("embed-target");
+  document.documentElement.classList.add("embed");
+  function send(){
+    parent.postMessage({ type: "ship-proto-height", id: id,
+      height: Math.ceil(target.getBoundingClientRect().height) + 2 }, "*");
+  }
+  if (window.ResizeObserver) new ResizeObserver(send).observe(target);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>
